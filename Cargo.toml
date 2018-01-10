@@ -1,0 +1,6 @@
+[package]
+name = "asn1_der"
+version = "0.3.0"
+authors = ["KizzyCode Software Labs./Keziah Biermann"]
+
+[dependencies]
