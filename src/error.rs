@@ -3,9 +3,9 @@ use std;
 #[derive(Debug)]
 /// The error-type
 pub enum ErrorType {
-	/// The encoding of something does not conform to the ASN.1-DER-standard
+	/// The encoding does not conform to the ASN.1-DER-standard
 	InvalidEncoding,
-	/// The real-length does not match the expected length
+	/// The annotated length does not match the real length
 	LengthMismatch,
 	/// The tag does not match the object-type
 	InvalidTag,
@@ -31,7 +31,7 @@ impl Eq for ErrorType {}
 pub struct Error {
 	/// The error-type
 	pub error_type: ErrorType,
-	/// Description
+	/// The error-description
 	pub description: String,
 	/// The file in which the error occurred
 	pub file: &'static str,

@@ -16,10 +16,10 @@ impl DerObject {
 	/// Create a `Generic`-object from DER-encoded data
 	///
 	/// Returns either `Self` or
-	/// [`Error::LengthMismatch`](enum.Error.html) if the overall length is zero, the length-field
+	/// `Error::LengthMismatch` if the overall length is zero, the length-field
 	/// 	is too short or the payload-length does not match the annotated length,
-	/// [`Error::InvalidEncoding`](enum.Error.html) if the length-field itself is invalid or
-	/// [`Error::Unsupported`](enum.Error.html) if the length is greater than [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html).
+	/// `Error::InvalidEncoding` if the length-field itself is invalid or
+	/// `Error::Unsupported` if the length is greater than [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html).
 	pub fn from_encoded(mut data: Vec<u8>) -> Result<Self, Error> {
 		// Validate minimum-length
 		if data.len() < 1 { throw_err!(ErrorType::LengthMismatch) }
@@ -38,10 +38,10 @@ impl DerObject {
 	
 	/// Create a `Generic`-object with DER-encoded data
 	///
-	/// Returns [`Error::LengthMismatch`](enum.Error.html) if the overall length is zero,
+	/// Returns `Error::LengthMismatch` if the overall length is zero,
 	/// 	the length-field is too short or the payload-length does not match the annotated length,
-	/// [`Error::InvalidEncoding`](enum.Error.html) if the length-field itself is invalid or
-	/// [`Error::Unsupported`](enum.Error.html) if the length is greater than [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html).
+	/// `Error::InvalidEncoding` if the length-field itself is invalid or
+	/// `Error::Unsupported` if the length is greater than [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html).
 	pub fn with_encoded(data: &[u8]) -> Result<Self, Error> {
 		// Validate minimum-length
 		if data.len() < 1 { throw_err!(ErrorType::LengthMismatch) }
