@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
 	extern crate asn1_der;
+	use self::asn1_der::FromDer;
 	
 	fn hex_to_vec(hex: &str) -> Vec<u8> {
 		// Prepare and validate hex-string
@@ -32,28 +33,28 @@ mod tests {
 		];
 		for (encoded, (tag, payload)) in generics {
 			// Test decoding
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
 			assert_eq!(decoded.tag, tag);
 			assert_eq!(decoded.payload, hex_to_vec(payload));
 			// Test encoding
-			let reencoded = decoded.into_der_encoded();
+			let reencoded = decoded.into_encoded();
 			assert_eq!(reencoded, hex_to_vec(encoded));
 		}
 	}
 	#[test]
 	fn generics_err() {
-		let generics: Vec<(&str, asn1_der::Error)> = vec![
+		let generics: Vec<(&str, asn1_der::ErrorType)> = vec![
 			// asn1_der::der_length::decode_length
-			("04 82ff", asn1_der::Error::LengthMismatch), // Length is too short
-			("04 8101 7e", asn1_der::Error::InvalidEncoding), // Complex length-encoding for < 128
-			("04", asn1_der::Error::LengthMismatch), // There is no length
+			("04 82ff", asn1_der::ErrorType::LengthMismatch), // Length is too short
+			("04 8101 7e", asn1_der::ErrorType::InvalidEncoding), // Complex length-encoding for < 128
+			("04", asn1_der::ErrorType::LengthMismatch), // There is no length
 			// asn1_der::Generic::from_der_encoded
-			("", asn1_der::Error::LengthMismatch), // No data present
-			("04 02 ff", asn1_der::Error::LengthMismatch), // Payload is too short
+			("", asn1_der::ErrorType::LengthMismatch), // No data present
+			("04 02 ff", asn1_der::ErrorType::LengthMismatch), // Payload is too short
 		];
 		for (encoded, error) in generics {
-			let decoding_err = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect_err("Decoded invalid DER-object without error");
-			assert_eq!(decoding_err, error);
+			let decoding_err = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect_err("Decoded invalid DER-object without error");
+			assert_eq!(decoding_err.error_type, error);
 		}
 	}
 	
@@ -69,22 +70,22 @@ mod tests {
 		];
 		for (encoded, data) in octet_strings {
 			// From generic-object
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let octet_string = Result::<asn1_der::typed::OctetString, asn1_der::Error>::from(decoded.clone()).expect("Failed to parse valid octet-string");
-			assert_eq!(octet_string.data, hex_to_vec(data));
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let octet_string = Vec::<u8>::from_der(decoded.clone()).expect("Failed to parse valid octet-string");
+			assert_eq!(octet_string, hex_to_vec(data));
 			// To generic-object
-			assert_eq!(asn1_der::Generic::from(octet_string), decoded);
+			assert_eq!(asn1_der::DerObject::from(octet_string), decoded);
 		}
 	}
 	#[test]
 	fn octet_strings_err() {
-		let octet_strings: Vec<(&str, asn1_der::Error)> = vec![
-			("05 02 37e4", asn1_der::Error::InvalidTag)
+		let octet_strings: Vec<(&str, asn1_der::ErrorType)> = vec![
+			("05 02 37e4", asn1_der::ErrorType::InvalidTag)
 		];
 		for (encoded, error) in octet_strings {
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = Result::<asn1_der::typed::OctetString, asn1_der::Error>::from(decoded).expect_err("Parsed invalid octet-string");
-			assert_eq!(decoding_err, error);
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let decoding_err = Vec::<u8>::from_der(decoded).expect_err("Parsed invalid octet-string");
+			assert_eq!(decoding_err.error_type, error);
 		}
 	}
 	
@@ -96,23 +97,23 @@ mod tests {
 		];
 		for (encoded, string) in utf8_strings {
 			// From generic-object
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let utf8_string = Result::<asn1_der::typed::UTF8String, asn1_der::Error>::from(decoded.clone()).expect("Failed to parse valid UTF-8-string");
-			assert_eq!(utf8_string.string, string);
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let utf8_string = String::from_der(decoded.clone()).expect("Failed to parse valid UTF-8-string");
+			assert_eq!(utf8_string, string);
 			// To generic-object
-			assert_eq!(asn1_der::Generic::from(utf8_string), decoded);
+			assert_eq!(asn1_der::DerObject::from(utf8_string), decoded);
 		}
 	}
 	#[test]
 	fn utf8_strings_err() {
-		let utf8_strings: Vec<(&str, asn1_der::Error)> = vec![
-			("0d 19 536f6d65205554462d3820456d6f6a6920f09f9696f09f8fbd", asn1_der::Error::InvalidTag),
-			("0c 04 f0288c28", asn1_der::Error::InvalidEncoding)
+		let utf8_strings: Vec<(&str, asn1_der::ErrorType)> = vec![
+			("0d 19 536f6d65205554462d3820456d6f6a6920f09f9696f09f8fbd", asn1_der::ErrorType::InvalidTag),
+			("0c 04 f0288c28", asn1_der::ErrorType::InvalidEncoding)
 		];
 		for (encoded, error) in utf8_strings {
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = Result::<asn1_der::typed::UTF8String, asn1_der::Error>::from(decoded).expect_err("Parsed invalid UTF-8-string");
-			assert_eq!(decoding_err, error);
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let decoding_err = String::from_der(decoded).expect_err("Parsed invalid UTF-8-string");
+			assert_eq!(decoding_err.error_type, error);
 		}
 	}
 	
@@ -127,25 +128,25 @@ mod tests {
 		];
 		for (encoded, value) in integers {
 			// From generic-object
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let integer = Result::<asn1_der::typed::Integer, asn1_der::Error>::from(decoded.clone()).expect("Failed to parse valid integer");
-			assert_eq!(integer.value, value);
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let integer = u64::from_der(decoded.clone()).expect("Failed to parse valid integer");
+			assert_eq!(integer, value);
 			// To generic-object
-			assert_eq!(asn1_der::Generic::from(integer), decoded);
+			assert_eq!(asn1_der::DerObject::from(integer), decoded);
 		}
 	}
 	#[test]
 	fn integers_err() {
-		let integers: Vec<(&str, asn1_der::Error)> = vec![
-			("03 01 07", asn1_der::Error::InvalidTag),
-			("02 00", asn1_der::Error::InvalidEncoding),
-			("02 01 87", asn1_der::Error::Unsupported),
-			("02 09 01e3a54c7fe50d84a0", asn1_der::Error::Unsupported)
+		let integers: Vec<(&str, asn1_der::ErrorType)> = vec![
+			("03 01 07", asn1_der::ErrorType::InvalidTag),
+			("02 00", asn1_der::ErrorType::InvalidEncoding),
+			("02 01 87", asn1_der::ErrorType::Unsupported),
+			("02 09 01e3a54c7fe50d84a0", asn1_der::ErrorType::Unsupported)
 		];
 		for (encoded, error) in integers {
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = Result::<asn1_der::typed::Integer, asn1_der::Error>::from(decoded).expect_err("Parsed invalid integer");
-			assert_eq!(decoding_err, error);
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let decoding_err = u64::from_der(decoded).expect_err("Parsed invalid integer");
+			assert_eq!(decoding_err.error_type, error);
 		}
 	}
 	
@@ -160,25 +161,25 @@ mod tests {
 		];
 		for (encoded, sequence_elements) in sequences {
 			// From generic-object
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let sequence = Result::<asn1_der::typed::Sequence, asn1_der::Error>::from(decoded.clone()).expect("Failed to parse valid sequence");
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let sequence = Vec::<asn1_der::DerObject>::from_der(decoded.clone()).expect("Failed to parse valid sequence");
 			// Parse reference-elements
-			let reference_elements = sequence_elements.iter().map(|x| asn1_der::Generic::from_der_encoded(hex_to_vec(x)).expect("Failed to parse reference-element")).collect::<Vec<asn1_der::Generic>>();
-			assert_eq!(sequence.elements, reference_elements);
+			let reference_elements = sequence_elements.iter().map(|x| asn1_der::DerObject::from_encoded(hex_to_vec(x)).expect("Failed to parse reference-element")).collect::<Vec<asn1_der::DerObject>>();
+			assert_eq!(sequence, reference_elements);
 			// To generic-object
-			assert_eq!(asn1_der::Generic::from(sequence), decoded);
+			assert_eq!(asn1_der::DerObject::from(sequence), decoded);
 		}
 	}
 	#[test]
 	fn sequences_err() {
-		let sequences: Vec<(&str, asn1_der::Error)> = vec![
-			("31 00", asn1_der::Error::InvalidTag),
-			("30 04  05 03 37e4", asn1_der::Error::LengthMismatch)
+		let sequences: Vec<(&str, asn1_der::ErrorType)> = vec![
+			("31 00", asn1_der::ErrorType::InvalidTag),
+			("30 04  05 03 37e4", asn1_der::ErrorType::LengthMismatch)
 		];
 		for (encoded, error) in sequences {
-			let decoded = asn1_der::Generic::from_der_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = Result::<asn1_der::typed::Sequence, asn1_der::Error>::from(decoded).expect_err("Parsed invalid sequence");
-			assert_eq!(decoding_err, error);
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let decoding_err = Vec::<asn1_der::DerObject>::from_der(decoded).expect_err("Parsed invalid sequence");
+			assert_eq!(decoding_err.error_type, error);
 		}
 	}
 }
