@@ -75,6 +75,27 @@ impl DerObject {
 	}
 	
 	
+	/// Tries to decode the length of an ASN.1-DER-object
+	///
+	/// This is especially useful if you don't have access to the full data yet (network-IO etc.)
+	/// and want to know how much bytes you need to read in advantage.
+	///
+	/// Returns `Ok(Some((total_length, payload_length)))` if the length was decoded successfully or
+	/// `Ok(None)` if there are not enough bytes to decode the length or
+	/// `Error::InvalidEncoding` if the length is invalid or
+	/// `Error::Unsupported` if the length is greater than [std::usize::MAX](https://doc.rust-lang.org/std/usize/constant.MAX.html).
+	pub fn try_decode_length(data: &[u8]) -> Result<Option<(usize, usize)>, Error> {
+		// Validate if we have at least one length-byte
+		if data.len() < 2 { return Ok(None) }
+		
+		// Decode the length
+		match DerObject::decode_length(&data[1 ..]) {
+			Ok((decoded_length, number_of_length_bytes)) => Ok(Some((1 + number_of_length_bytes + decoded_length, decoded_length))),
+			Err(ref error) if error.error_type == ErrorType::LengthMismatch => Ok(None),
+			Err(error) => Err(error)
+		}
+	}
+	
 	
 	/// Decode an ASN.1-DER-encoded length
 	///
@@ -84,7 +105,7 @@ impl DerObject {
 	/// `Error::InvalidEncoding` if the length is invalid or
 	/// `Error::LengthMismatch` if the length-field is too short or
 	/// `Error::Unsupported` if the length is greater than [std::usize::MAX](https://doc.rust-lang.org/std/usize/constant.MAX.html).
-	fn decode_length(length_bytes: &[u8]) -> Result<(usize, usize), super::Error> {
+	fn decode_length(length_bytes: &[u8]) -> Result<(usize, usize), Error> {
 		// Validate first length-byte
 		if length_bytes.len() < 1 { throw_err!(ErrorType::LengthMismatch) }
 		let (mut length, mut byte_count) = (length_bytes[0] as usize, 1usize);
