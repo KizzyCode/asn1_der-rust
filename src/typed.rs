@@ -2,6 +2,11 @@ use std;
 use super::{ Error, ErrorType };
 use super::DerObject;
 
+/// The ASN.1-NULL-type
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Null;
+
+
 /// A trait to parse DER-elements into their corresponding native types
 pub trait FromDer<T> where Self: std::marker::Sized {
 	/// Tries to parse `element` into `Self`
@@ -14,6 +19,14 @@ pub trait FromDer<T> where Self: std::marker::Sized {
 	fn from_der(element: T) -> Result<Self, Error>;
 }
 
+impl FromDer<DerObject> for Null {
+	fn from_der(der_object: DerObject) -> Result<Self, Error> {
+		// Validate tag and extract payload
+		if der_object.tag != 0x05 { throw_err!(ErrorType::InvalidTag) }
+		if der_object.payload.len() != 0 { throw_err!(ErrorType::InvalidEncoding) }
+		Ok(Null)
+	}
+}
 impl FromDer<DerObject> for Vec<u8> {
 	fn from_der(der_object: DerObject) -> Result<Self, Error> {
 		// Validate tag and extract payload
@@ -61,6 +74,17 @@ impl FromDer<DerObject> for Vec<DerObject> {
 }
 
 
+
+impl From<Null> for DerObject {
+	fn from(_: Null) -> Self {
+		DerObject::new(0x05, Vec::new())
+	}
+}
+impl From<DerObject> for Null {
+	fn from(der_object: DerObject) -> Self {
+		Null::from_der(der_object).unwrap()
+	}
+}
 
 impl From<Vec<u8>> for DerObject {
 	fn from(octet_string: Vec<u8>) -> Self {

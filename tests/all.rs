@@ -60,8 +60,32 @@ mod tests {
 	
 	
 	#[test]
+	fn null_ok() {
+		let encoded = "05 00";
+		
+		// From generic-object
+		let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+		let null = asn1_der::Null::from_der(decoded.clone()).expect("Failed to parse valid null-object");
+		// To generic-object
+		assert_eq!(asn1_der::DerObject::from(null), decoded);
+	}
+	#[test]
+	fn null_err() {
+		let null_objects = vec![
+			("06 00", asn1_der::ErrorType::InvalidTag),
+			("05 01 00", asn1_der::ErrorType::InvalidEncoding)
+		];
+		for (encoded, error) in null_objects {
+			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let decoding_err = asn1_der::Null::from_der(decoded).expect_err("Parsed invalid null-object");
+			assert_eq!(decoding_err.error_type, error);
+		}
+	}
+	
+	
+	#[test]
 	fn octet_strings_ok() {
-		let octet_strings: Vec<(&str, &str)> = vec![
+		let octet_strings = vec![
 			("04 02 37e4", "37e4"),
 			("04 7F 330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84",
 			 "330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84"),

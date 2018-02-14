@@ -8,4 +8,4 @@ mod big_endian;
 
 pub use error::{ Error, ErrorType };
 pub use der::DerObject;
-pub use typed::FromDer;
+pub use typed::{ FromDer, Null };
