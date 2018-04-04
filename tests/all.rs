@@ -1,209 +1,253 @@
-#[cfg(test)]
+#[macro_use] extern crate asn1_der;
+#[macro_use] extern crate etrace;
+
 mod tests {
-	extern crate asn1_der;
-	use self::asn1_der::FromDer;
-	
-	fn hex_to_vec(hex: &str) -> Vec<u8> {
-		// Prepare and validate hex-string
-		let clean_hex_string = hex.replace(" ", "").to_lowercase();
-		if clean_hex_string.len() % 2 != 0 { panic!("Hex-string must contain an even number of chars") }
-		
-		// Decode hex-string
-		let hex_chars = b"0123456789abcdef";
-		let mut decoded = Vec::<u8>::with_capacity(hex.len() / 2);
-		
-		let mut iter = clean_hex_string.bytes();
-		while let (Some(n0), Some(n1)) = (iter.next(), iter.next()) {
-			decoded.push((hex_chars.binary_search(&n0).expect("Invalid hex-char") << 4 | hex_chars.binary_search(&n1).expect("Invalid hex-char")) as u8)
-		}
-		decoded
-	}
+	use std::fmt::Debug;
+	use super::asn1_der::{ Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded };
 	
 	
 	#[test]
-	fn generics_ok() {
-		let generics: Vec<(&str, (u8, &str))> = vec![
+	fn der_object_ok() {
+		let generics = [
 			// Some valid generic-objects
-			("05 00", (0x05, "")), // Null-object
-			("04 02 37e4", (0x04, "37e4")),
-			("04 7F 330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84",
-			 (0x04, "330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84")),
-			("04 8180 e74bfaed07201437effc07f1bd1ac37cb999fe4db8267b6a6f03dd08af0fb84ca279d2e596decdad1f4d41cf4a3a0343a68dca20ec073c8d0016a073145f2ff96e137d9a4ae681d0d98f267c1dd17d47db49c30d03c33dc906f31a229cab5c2f3d1c4b732d319e8f4ae0afaa99eeea73484e01947e57d71f2d82ba0ab2430fd3",
-			 (0x04, "e74bfaed07201437effc07f1bd1ac37cb999fe4db8267b6a6f03dd08af0fb84ca279d2e596decdad1f4d41cf4a3a0343a68dca20ec073c8d0016a073145f2ff96e137d9a4ae681d0d98f267c1dd17d47db49c30d03c33dc906f31a229cab5c2f3d1c4b732d319e8f4ae0afaa99eeea73484e01947e57d71f2d82ba0ab2430fd3")),
+			(b"\x05\x00".as_ref(), (0x05, b"".as_ref())), // Null-object
+			(b"\x04\x02\x37\xe4", (0x04, b"\x37\xe4".as_ref())),
+			(b"\x04\x7F\x33\x0e\x8d\xb9\x1b\x33\x21\x5c\x0e\x53\x3f\xd2\x8e\x34\xcc\x8b\x09\xa8\x08\x87\x7d\xc7\xd8\x27\x41\x93\x04\x31\xbd\x09\xd0\xd6\xf3\x1a\x68\x7d\x40\x60\x12\x6f\x0c\xe0\x36\x0a\xcf\x95\xde\x81\x2f\xa4\x2f\x62\xf6\x71\x97\xe0\x49\x60\x3b\x65\x74\x8f\xd2\x57\xe3\xc1\x61\x1d\xb4\x54\xa4\x96\xa6\xb3\xf4\x3b\x27\xaa\x5a\xeb\xc9\x23\x58\x92\x1b\x27\x54\x79\xe6\x7c\xb1\x79\x83\x00\x5b\x08\x5b\x85\x2f\x0c\x2f\x8d\x34\x47\x2c\xa4\x70\xdf\xb0\xa3\x9b\x61\x33\x6d\xd3\x91\x84\x81\x97\x68\x67\x54\xb2\xee\x57\xfd\x84".as_ref(),
+			 (0x04, b"\x33\x0e\x8d\xb9\x1b\x33\x21\x5c\x0e\x53\x3f\xd2\x8e\x34\xcc\x8b\x09\xa8\x08\x87\x7d\xc7\xd8\x27\x41\x93\x04\x31\xbd\x09\xd0\xd6\xf3\x1a\x68\x7d\x40\x60\x12\x6f\x0c\xe0\x36\x0a\xcf\x95\xde\x81\x2f\xa4\x2f\x62\xf6\x71\x97\xe0\x49\x60\x3b\x65\x74\x8f\xd2\x57\xe3\xc1\x61\x1d\xb4\x54\xa4\x96\xa6\xb3\xf4\x3b\x27\xaa\x5a\xeb\xc9\x23\x58\x92\x1b\x27\x54\x79\xe6\x7c\xb1\x79\x83\x00\x5b\x08\x5b\x85\x2f\x0c\x2f\x8d\x34\x47\x2c\xa4\x70\xdf\xb0\xa3\x9b\x61\x33\x6d\xd3\x91\x84\x81\x97\x68\x67\x54\xb2\xee\x57\xfd\x84".as_ref())),
+			(b"\x04\x81\x80\xe7\x4b\xfa\xed\x07\x20\x14\x37\xef\xfc\x07\xf1\xbd\x1a\xc3\x7c\xb9\x99\xfe\x4d\xb8\x26\x7b\x6a\x6f\x03\xdd\x08\xaf\x0f\xb8\x4c\xa2\x79\xd2\xe5\x96\xde\xcd\xad\x1f\x4d\x41\xcf\x4a\x3a\x03\x43\xa6\x8d\xca\x20\xec\x07\x3c\x8d\x00\x16\xa0\x73\x14\x5f\x2f\xf9\x6e\x13\x7d\x9a\x4a\xe6\x81\xd0\xd9\x8f\x26\x7c\x1d\xd1\x7d\x47\xdb\x49\xc3\x0d\x03\xc3\x3d\xc9\x06\xf3\x1a\x22\x9c\xab\x5c\x2f\x3d\x1c\x4b\x73\x2d\x31\x9e\x8f\x4a\xe0\xaf\xaa\x99\xee\xea\x73\x48\x4e\x01\x94\x7e\x57\xd7\x1f\x2d\x82\xba\x0a\xb2\x43\x0f\xd3".as_ref(),
+			 (0x04, b"\xe7\x4b\xfa\xed\x07\x20\x14\x37\xef\xfc\x07\xf1\xbd\x1a\xc3\x7c\xb9\x99\xfe\x4d\xb8\x26\x7b\x6a\x6f\x03\xdd\x08\xaf\x0f\xb8\x4c\xa2\x79\xd2\xe5\x96\xde\xcd\xad\x1f\x4d\x41\xcf\x4a\x3a\x03\x43\xa6\x8d\xca\x20\xec\x07\x3c\x8d\x00\x16\xa0\x73\x14\x5f\x2f\xf9\x6e\x13\x7d\x9a\x4a\xe6\x81\xd0\xd9\x8f\x26\x7c\x1d\xd1\x7d\x47\xdb\x49\xc3\x0d\x03\xc3\x3d\xc9\x06\xf3\x1a\x22\x9c\xab\x5c\x2f\x3d\x1c\x4b\x73\x2d\x31\x9e\x8f\x4a\xe0\xaf\xaa\x99\xee\xea\x73\x48\x4e\x01\x94\x7e\x57\xd7\x1f\x2d\x82\xba\x0a\xb2\x43\x0f\xd3".as_ref())),
 		];
-		for (encoded, (tag, payload)) in generics {
+		generics.iter().for_each(|&(encoded, (tag, payload))| {
 			// Test decoding
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
+			let decoded = DerObject::with_der_encoded(encoded).expect("Failed to decode valid DER-object");
 			assert_eq!(decoded.tag, tag);
-			assert_eq!(decoded.payload, hex_to_vec(payload));
+			assert_eq!(decoded.payload, payload);
 			// Test encoding
-			let reencoded = decoded.into_encoded();
-			assert_eq!(reencoded, hex_to_vec(encoded));
-		}
+			let reencoded = decoded.into_der_encoded();
+			assert_eq!(reencoded, encoded);
+		})
 	}
 	#[test]
-	fn generics_err() {
-		let generics: Vec<(&str, asn1_der::ErrorType)> = vec![
+	fn der_object_err() {
+		let generics = [
 			// asn1_der::der_length::decode_length
-			("04 82ff", asn1_der::ErrorType::LengthMismatch), // Length is too short
-			("04 8101 7e", asn1_der::ErrorType::InvalidEncoding), // Complex length-encoding for < 128
-			("04", asn1_der::ErrorType::LengthMismatch), // There is no length
+			(b"\x04\x82\xff".as_ref(), Asn1DerError::NotEnoughBytes), // Length is too short
+			(b"\x04\x81\x01\x7e".as_ref(), Asn1DerError::InvalidEncoding), // Complex length-encoding for < 128
+			(b"\x04".as_ref(), Asn1DerError::NotEnoughBytes), // There is no length
 			// asn1_der::Generic::from_der_encoded
-			("", asn1_der::ErrorType::LengthMismatch), // No data present
-			("04 02 ff", asn1_der::ErrorType::LengthMismatch), // Payload is too short
+			(b"".as_ref(), Asn1DerError::NotEnoughBytes), // No data present
+			(b"\x04\x02\xff".as_ref(), Asn1DerError::NotEnoughBytes), // Payload is too short
 		];
-		for (encoded, error) in generics {
-			let decoding_err = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect_err("Decoded invalid DER-object without error");
-			assert_eq!(decoding_err.error_type, error);
-		}
+		generics.iter().for_each(|&(encoded, ref error)| {
+			let decoding_err = DerObject::with_der_encoded(encoded).expect_err("Decoded invalid DER-object without error");
+			assert_eq!(decoding_err.kind, *error);
+		})
 	}
+	
+	
+	
+	#[inline]
+	fn typed_ok<T>(test_vectors: &[(&[u8], T)]) where T: FromDerObject + IntoDerObject + FromDerEncoded + IntoDerEncoded + Eq + Clone + Debug {
+		test_vectors.iter().for_each(|&(encoded, ref expected)| {
+			let decoded_object = {
+				let decoded0 = DerObject::with_der_encoded(encoded).unwrap();
+				let decoded1 = DerObject::from_der_encoded(encoded.to_vec()).unwrap();
+				assert_eq!(decoded0, decoded1);
+				decoded0
+			};
+			
+			let plain = {
+				let plain0 = T::from_der_object(decoded_object.clone()).unwrap();
+				let plain1 = T::with_der_encoded(encoded).unwrap();
+				let plain2 = T::from_der_encoded(encoded.to_vec()).unwrap();
+				assert_eq!(plain0, plain1);
+				assert_eq!(plain1, plain2);
+				plain0
+			};
+			assert_eq!(&plain, expected);
+			
+			assert_eq!(plain.clone().into_der_object(), decoded_object);
+			assert_eq!(plain.into_der_encoded(), encoded);
+		})
+	}
+	#[inline]
+	fn typed_err<T>(test_vectors: &[(&[u8], Asn1DerError)]) where T: FromDerObject + FromDerEncoded + Debug {
+		test_vectors.iter().for_each(|&(encoded, ref error)| {
+			let decoded = DerObject::with_der_encoded(encoded).unwrap();
+			let decoding_err = {
+				let decoding_err0 = T::from_der_object(decoded).unwrap_err();
+				let decoding_err1 = T::with_der_encoded(encoded).unwrap_err();
+				let decoding_err2 = T::from_der_encoded(encoded.to_vec()).unwrap_err();
+				assert_eq!(decoding_err0.kind, decoding_err1.kind);
+				assert_eq!(decoding_err1.kind, decoding_err2.kind);
+				decoding_err0
+			};
+			assert_eq!(decoding_err.kind, *error);
+		});
+	}
+	
+	
 	
 	
 	#[test]
 	fn null_ok() {
-		let encoded = "05 00";
-		
-		// From generic-object
-		let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-		let null = asn1_der::Null::from_der(decoded.clone()).expect("Failed to parse valid null-object");
-		// To generic-object
-		assert_eq!(asn1_der::DerObject::from(null), decoded);
+		let test_vectors = [(b"\x05\x00".as_ref(), ())];
+		typed_ok(&test_vectors);
 	}
 	#[test]
 	fn null_err() {
-		let null_objects = vec![
-			("06 00", asn1_der::ErrorType::InvalidTag),
-			("05 01 00", asn1_der::ErrorType::InvalidEncoding)
+		let test_vectors = [
+			(b"\x06\x00".as_ref(), Asn1DerError::InvalidTag),
+			(b"\x05\x01\x00".as_ref(), Asn1DerError::InvalidEncoding)
 		];
-		for (encoded, error) in null_objects {
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = asn1_der::Null::from_der(decoded).expect_err("Parsed invalid null-object");
-			assert_eq!(decoding_err.error_type, error);
-		}
+		typed_err::<()>(&test_vectors);
 	}
 	
 	
 	#[test]
-	fn octet_strings_ok() {
-		let octet_strings = vec![
-			("04 02 37e4", "37e4"),
-			("04 7F 330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84",
-			 "330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84"),
-			("04 8180 e74bfaed07201437effc07f1bd1ac37cb999fe4db8267b6a6f03dd08af0fb84ca279d2e596decdad1f4d41cf4a3a0343a68dca20ec073c8d0016a073145f2ff96e137d9a4ae681d0d98f267c1dd17d47db49c30d03c33dc906f31a229cab5c2f3d1c4b732d319e8f4ae0afaa99eeea73484e01947e57d71f2d82ba0ab2430fd3",
-			 "e74bfaed07201437effc07f1bd1ac37cb999fe4db8267b6a6f03dd08af0fb84ca279d2e596decdad1f4d41cf4a3a0343a68dca20ec073c8d0016a073145f2ff96e137d9a4ae681d0d98f267c1dd17d47db49c30d03c33dc906f31a229cab5c2f3d1c4b732d319e8f4ae0afaa99eeea73484e01947e57d71f2d82ba0ab2430fd3"),
+	fn bool_ok() {
+		let test_vectors = [
+			(b"\x01\x01\x00".as_ref(), false),
+			(b"\x01\x01\xff".as_ref(), true)
 		];
-		for (encoded, data) in octet_strings {
-			// From generic-object
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let octet_string = Vec::<u8>::from_der(decoded.clone()).expect("Failed to parse valid octet-string");
-			assert_eq!(octet_string, hex_to_vec(data));
-			// To generic-object
-			assert_eq!(asn1_der::DerObject::from(octet_string), decoded);
-		}
+		typed_ok(&test_vectors);
 	}
 	#[test]
-	fn octet_strings_err() {
-		let octet_strings: Vec<(&str, asn1_der::ErrorType)> = vec![
-			("05 02 37e4", asn1_der::ErrorType::InvalidTag)
+	fn bool_err() {
+		let test_vectors = [
+			(b"\x06\x00".as_ref(), Asn1DerError::InvalidTag),
+			(b"\x01\x01\x17".as_ref(), Asn1DerError::InvalidEncoding),
+			(b"\x01\x02\x00\x00".as_ref(), Asn1DerError::InvalidEncoding),
+			(b"\x01\x02\xff\x00".as_ref(), Asn1DerError::InvalidEncoding),
+			(b"\x01\x02\x17\x00".as_ref(), Asn1DerError::InvalidEncoding)
 		];
-		for (encoded, error) in octet_strings {
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = Vec::<u8>::from_der(decoded).expect_err("Parsed invalid octet-string");
-			assert_eq!(decoding_err.error_type, error);
-		}
+		typed_err::<bool>(&test_vectors);
 	}
 	
 	
 	#[test]
-	fn utf8_strings_ok() {
-		let utf8_strings: Vec<(&str, &str)> = vec![
-			("0c 19 536f6d65205554462d3820456d6f6a6920f09f9696f09f8fbd", "Some UTF-8 Emoji 🖖🏽")
+	fn octet_string_ok() {
+		let test_vectors = [
+			(b"\x04\x02\x37\xe4".as_ref(), b"\x37\xe4".to_vec()),
+			(b"\x04\x7F\x33\x0e\x8d\xb9\x1b\x33\x21\x5c\x0e\x53\x3f\xd2\x8e\x34\xcc\x8b\x09\xa8\x08\x87\x7d\xc7\xd8\x27\x41\x93\x04\x31\xbd\x09\xd0\xd6\xf3\x1a\x68\x7d\x40\x60\x12\x6f\x0c\xe0\x36\x0a\xcf\x95\xde\x81\x2f\xa4\x2f\x62\xf6\x71\x97\xe0\x49\x60\x3b\x65\x74\x8f\xd2\x57\xe3\xc1\x61\x1d\xb4\x54\xa4\x96\xa6\xb3\xf4\x3b\x27\xaa\x5a\xeb\xc9\x23\x58\x92\x1b\x27\x54\x79\xe6\x7c\xb1\x79\x83\x00\x5b\x08\x5b\x85\x2f\x0c\x2f\x8d\x34\x47\x2c\xa4\x70\xdf\xb0\xa3\x9b\x61\x33\x6d\xd3\x91\x84\x81\x97\x68\x67\x54\xb2\xee\x57\xfd\x84".as_ref(),
+			 b"\x33\x0e\x8d\xb9\x1b\x33\x21\x5c\x0e\x53\x3f\xd2\x8e\x34\xcc\x8b\x09\xa8\x08\x87\x7d\xc7\xd8\x27\x41\x93\x04\x31\xbd\x09\xd0\xd6\xf3\x1a\x68\x7d\x40\x60\x12\x6f\x0c\xe0\x36\x0a\xcf\x95\xde\x81\x2f\xa4\x2f\x62\xf6\x71\x97\xe0\x49\x60\x3b\x65\x74\x8f\xd2\x57\xe3\xc1\x61\x1d\xb4\x54\xa4\x96\xa6\xb3\xf4\x3b\x27\xaa\x5a\xeb\xc9\x23\x58\x92\x1b\x27\x54\x79\xe6\x7c\xb1\x79\x83\x00\x5b\x08\x5b\x85\x2f\x0c\x2f\x8d\x34\x47\x2c\xa4\x70\xdf\xb0\xa3\x9b\x61\x33\x6d\xd3\x91\x84\x81\x97\x68\x67\x54\xb2\xee\x57\xfd\x84".to_vec()),
+			(b"\x04\x81\x80\xe7\x4b\xfa\xed\x07\x20\x14\x37\xef\xfc\x07\xf1\xbd\x1a\xc3\x7c\xb9\x99\xfe\x4d\xb8\x26\x7b\x6a\x6f\x03\xdd\x08\xaf\x0f\xb8\x4c\xa2\x79\xd2\xe5\x96\xde\xcd\xad\x1f\x4d\x41\xcf\x4a\x3a\x03\x43\xa6\x8d\xca\x20\xec\x07\x3c\x8d\x00\x16\xa0\x73\x14\x5f\x2f\xf9\x6e\x13\x7d\x9a\x4a\xe6\x81\xd0\xd9\x8f\x26\x7c\x1d\xd1\x7d\x47\xdb\x49\xc3\x0d\x03\xc3\x3d\xc9\x06\xf3\x1a\x22\x9c\xab\x5c\x2f\x3d\x1c\x4b\x73\x2d\x31\x9e\x8f\x4a\xe0\xaf\xaa\x99\xee\xea\x73\x48\x4e\x01\x94\x7e\x57\xd7\x1f\x2d\x82\xba\x0a\xb2\x43\x0f\xd3".as_ref(),
+			 b"\xe7\x4b\xfa\xed\x07\x20\x14\x37\xef\xfc\x07\xf1\xbd\x1a\xc3\x7c\xb9\x99\xfe\x4d\xb8\x26\x7b\x6a\x6f\x03\xdd\x08\xaf\x0f\xb8\x4c\xa2\x79\xd2\xe5\x96\xde\xcd\xad\x1f\x4d\x41\xcf\x4a\x3a\x03\x43\xa6\x8d\xca\x20\xec\x07\x3c\x8d\x00\x16\xa0\x73\x14\x5f\x2f\xf9\x6e\x13\x7d\x9a\x4a\xe6\x81\xd0\xd9\x8f\x26\x7c\x1d\xd1\x7d\x47\xdb\x49\xc3\x0d\x03\xc3\x3d\xc9\x06\xf3\x1a\x22\x9c\xab\x5c\x2f\x3d\x1c\x4b\x73\x2d\x31\x9e\x8f\x4a\xe0\xaf\xaa\x99\xee\xea\x73\x48\x4e\x01\x94\x7e\x57\xd7\x1f\x2d\x82\xba\x0a\xb2\x43\x0f\xd3".to_vec()),
 		];
-		for (encoded, string) in utf8_strings {
-			// From generic-object
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let utf8_string = String::from_der(decoded.clone()).expect("Failed to parse valid UTF-8-string");
-			assert_eq!(utf8_string, string);
-			// To generic-object
-			assert_eq!(asn1_der::DerObject::from(utf8_string), decoded);
-		}
+		typed_ok(&test_vectors);
 	}
 	#[test]
-	fn utf8_strings_err() {
-		let utf8_strings: Vec<(&str, asn1_der::ErrorType)> = vec![
-			("0d 19 536f6d65205554462d3820456d6f6a6920f09f9696f09f8fbd", asn1_der::ErrorType::InvalidTag),
-			("0c 04 f0288c28", asn1_der::ErrorType::InvalidEncoding)
-		];
-		for (encoded, error) in utf8_strings {
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = String::from_der(decoded).expect_err("Parsed invalid UTF-8-string");
-			assert_eq!(decoding_err.error_type, error);
-		}
+	fn octet_string_err() {
+		let test_vectors = [(b"\x05\x02\x37\xe4".as_ref(), Asn1DerError::InvalidTag)];
+		typed_err::<Vec<u8>>(&test_vectors);
 	}
 	
 	
 	#[test]
-	fn integers_ok() {
-		let integers: Vec<(&str, u64)> = vec![
-			("02 01 07", 7u64),
-			("02 08 7ff7d317cef1a726", 9221070861274031910u64),
-			("02 09 0080a54c7fe50d84a0", 9269899520199460000u64),
-			("02 09 00ffffffffffffffff", 18446744073709551615u64)
-		];
-		for (encoded, value) in integers {
-			// From generic-object
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let integer = u64::from_der(decoded.clone()).expect("Failed to parse valid integer");
-			assert_eq!(integer, value);
-			// To generic-object
-			assert_eq!(asn1_der::DerObject::from(integer), decoded);
-		}
+	fn utf8_string_ok() {
+		let test_vectors = [(b"\x0c\x19\x53\x6f\x6d\x65\x20\x55\x54\x46\x2d\x38\x20\x45\x6d\x6f\x6a\x69\x20\xf0\x9f\x96\x96\xf0\x9f\x8f\xbd".as_ref(), "Some UTF-8 Emoji 🖖🏽".to_string())];
+		typed_ok(&test_vectors);
 	}
 	#[test]
-	fn integers_err() {
-		let integers: Vec<(&str, asn1_der::ErrorType)> = vec![
-			("03 01 07", asn1_der::ErrorType::InvalidTag),
-			("02 00", asn1_der::ErrorType::InvalidEncoding),
-			("02 01 87", asn1_der::ErrorType::Unsupported),
-			("02 09 01e3a54c7fe50d84a0", asn1_der::ErrorType::Unsupported)
+	fn utf8_string_err() {
+		let test_vectors = [
+			(b"\x0d\x19\x53\x6f\x6d\x65\x20\x55\x54\x46\x2d\x38\x20\x45\x6d\x6f\x6a\x69\x20\xf0\x9f\x96\x96\xf0\x9f\x8f\xbd".as_ref(), Asn1DerError::InvalidTag),
+			(b"\x0c\x04\xf0\x28\x8c\x28".as_ref(), Asn1DerError::InvalidEncoding)
 		];
-		for (encoded, error) in integers {
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = u64::from_der(decoded).expect_err("Parsed invalid integer");
-			assert_eq!(decoding_err.error_type, error);
-		}
+		typed_err::<String>(&test_vectors);
 	}
 	
 	
 	#[test]
-	fn sequences_ok() {
-		let sequences: Vec<(&str, Vec<&str>)> = vec![
-			("30 00", vec![]),
-			("30 04  04 02 37e4", vec!["04 02 37e4"]),
-			("30 81 87  04 02 37e4  04 8180 72330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84",
-			 vec!["04 02 37e4", "04 8180 72330e8db91b33215c0e533fd28e34cc8b09a808877dc7d82741930431bd09d0d6f31a687d4060126f0ce0360acf95de812fa42f62f67197e049603b65748fd257e3c1611db454a496a6b3f43b27aa5aebc92358921b275479e67cb17983005b085b852f0c2f8d34472ca470dfb0a39b61336dd391848197686754b2ee57fd84"])
+	fn integer_ok() {
+		let test_vectors = [
+			(b"\x02\x01\x00".as_ref(), 0u64),
+			(b"\x02\x01\x07".as_ref(), 7u64),
+			(b"\x02\x08\x7f\xf7\xd3\x17\xce\xf1\xa7\x26".as_ref(), 9221070861274031910u64),
+			(b"\x02\x09\x00\x80\xa5\x4c\x7f\xe5\x0d\x84\xa0".as_ref(), 9269899520199460000u64),
+			(b"\x02\x09\x00\xff\xff\xff\xff\xff\xff\xff\xff".as_ref(), 18446744073709551615u64)
 		];
-		for (encoded, sequence_elements) in sequences {
-			// From generic-object
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let sequence = Vec::<asn1_der::DerObject>::from_der(decoded.clone()).expect("Failed to parse valid sequence");
-			// Parse reference-elements
-			let reference_elements = sequence_elements.iter().map(|x| asn1_der::DerObject::from_encoded(hex_to_vec(x)).expect("Failed to parse reference-element")).collect::<Vec<asn1_der::DerObject>>();
-			assert_eq!(sequence, reference_elements);
-			// To generic-object
-			assert_eq!(asn1_der::DerObject::from(sequence), decoded);
-		}
+		typed_ok(&test_vectors);
 	}
 	#[test]
-	fn sequences_err() {
-		let sequences: Vec<(&str, asn1_der::ErrorType)> = vec![
-			("31 00", asn1_der::ErrorType::InvalidTag),
-			("30 04  05 03 37e4", asn1_der::ErrorType::LengthMismatch)
+	fn integer_err() {
+		let test_vectors = [
+			(b"\x03\x01\x07".as_ref(), Asn1DerError::InvalidTag),
+			(b"\x02\x00".as_ref(), Asn1DerError::InvalidEncoding),
+			(b"\x02\x01\x87".as_ref(), Asn1DerError::Unsupported),
+			(b"\x02\x09\x01\xe3\xa5\x4c\x7f\xe5\x0d\x84\xa0".as_ref(), Asn1DerError::Unsupported)
 		];
-		for (encoded, error) in sequences {
-			let decoded = asn1_der::DerObject::from_encoded(hex_to_vec(encoded)).expect("Failed to decode valid DER-object");
-			let decoding_err = Vec::<asn1_der::DerObject>::from_der(decoded).expect_err("Parsed invalid sequence");
-			assert_eq!(decoding_err.error_type, error);
+		typed_err::<u64>(&test_vectors);
+	}
+	
+	
+	#[test]
+	fn sequence_ok() {
+		let test_vectors = [
+			(b"\x30\x00".as_ref(), vec![]),
+			(b"\x30\x04\x04\x02\x37\xe4".as_ref(), vec![DerObject::new(0x04, b"\x37\xe4".to_vec())]),
+			(b"\x30\x81\x87\x04\x02\x37\xe4\x04\x81\x80\x72\x33\x0e\x8d\xb9\x1b\x33\x21\x5c\x0e\x53\x3f\xd2\x8e\x34\xcc\x8b\x09\xa8\x08\x87\x7d\xc7\xd8\x27\x41\x93\x04\x31\xbd\x09\xd0\xd6\xf3\x1a\x68\x7d\x40\x60\x12\x6f\x0c\xe0\x36\x0a\xcf\x95\xde\x81\x2f\xa4\x2f\x62\xf6\x71\x97\xe0\x49\x60\x3b\x65\x74\x8f\xd2\x57\xe3\xc1\x61\x1d\xb4\x54\xa4\x96\xa6\xb3\xf4\x3b\x27\xaa\x5a\xeb\xc9\x23\x58\x92\x1b\x27\x54\x79\xe6\x7c\xb1\x79\x83\x00\x5b\x08\x5b\x85\x2f\x0c\x2f\x8d\x34\x47\x2c\xa4\x70\xdf\xb0\xa3\x9b\x61\x33\x6d\xd3\x91\x84\x81\x97\x68\x67\x54\xb2\xee\x57\xfd\x84".as_ref(),
+			 vec![DerObject::new(0x04, b"\x37\xe4".to_vec()), DerObject::new(0x04, b"\x72\x33\x0e\x8d\xb9\x1b\x33\x21\x5c\x0e\x53\x3f\xd2\x8e\x34\xcc\x8b\x09\xa8\x08\x87\x7d\xc7\xd8\x27\x41\x93\x04\x31\xbd\x09\xd0\xd6\xf3\x1a\x68\x7d\x40\x60\x12\x6f\x0c\xe0\x36\x0a\xcf\x95\xde\x81\x2f\xa4\x2f\x62\xf6\x71\x97\xe0\x49\x60\x3b\x65\x74\x8f\xd2\x57\xe3\xc1\x61\x1d\xb4\x54\xa4\x96\xa6\xb3\xf4\x3b\x27\xaa\x5a\xeb\xc9\x23\x58\x92\x1b\x27\x54\x79\xe6\x7c\xb1\x79\x83\x00\x5b\x08\x5b\x85\x2f\x0c\x2f\x8d\x34\x47\x2c\xa4\x70\xdf\xb0\xa3\x9b\x61\x33\x6d\xd3\x91\x84\x81\x97\x68\x67\x54\xb2\xee\x57\xfd\x84".to_vec())])
+		];
+		typed_ok(&test_vectors);
+	}
+	#[test]
+	fn sequence_err() {
+		let test_vectors = [
+			(b"\x31\x00".as_ref(), Asn1DerError::InvalidTag),
+			(b"\x30\x04\x05\x03\x37\xe4".as_ref(), Asn1DerError::NotEnoughBytes)
+		];
+		typed_err::<Vec<DerObject>>(&test_vectors);
+	}
+	
+	
+	#[test]
+	fn impl_macro() {
+		// Define inner struct
+		#[derive(Debug, Clone, Eq, PartialEq)]
+		struct Inner {
+			integer: u64,
+			boolean: bool,
+			octet_string: Vec<u8>,
+			utf8_string: String,
+			null: (),
+			sequence: Vec<Inner>
 		}
+		impl Inner {
+			pub fn new(num: u64) -> Self {
+				Inner{
+					integer: num, boolean: num % 2 == 0,
+					octet_string: b"Testolope (octet_string)".to_vec(), utf8_string: format!("Inner {}", num),
+					null: (), sequence: vec![]
+				}
+			}
+		}
+		asn1_der_impl!(Inner{ integer, boolean, octet_string, utf8_string, null, sequence });
+		
+		// Define outer struct
+		#[derive(Debug, Clone, Eq, PartialEq)]
+		struct Outer {
+			utf8_string: String,
+			inner: Inner
+		}
+		asn1_der_impl!(Outer{ utf8_string, inner });
+		
+		// Create inner and outer
+		let inner =  {
+			let mut inner_0 = Inner::new(0);
+			inner_0.sequence.push(Inner::new(1));
+			inner_0.sequence.push(Inner::new(2));
+			inner_0
+		};
+		let outer = Outer{ utf8_string: "Testolope".to_string(), inner: inner };
+		
+		// Encode and compare
+		let encoded = outer.clone().into_der_encoded();
+		let expected = b"\x30\x81\x99\x0c\x09\x54\x65\x73\x74\x6f\x6c\x6f\x70\x65\x30\x81\x8b\x02\x01\x00\x01\x01\xff\x04\x18\x54\x65\x73\x74\x6f\x6c\x6f\x70\x65\x20\x28\x6f\x63\x74\x65\x74\x5f\x73\x74\x72\x69\x6e\x67\x29\x0c\x07\x49\x6e\x6e\x65\x72\x20\x30\x05\x00\x30\x5e\x30\x2d\x02\x01\x01\x01\x01\x00\x04\x18\x54\x65\x73\x74\x6f\x6c\x6f\x70\x65\x20\x28\x6f\x63\x74\x65\x74\x5f\x73\x74\x72\x69\x6e\x67\x29\x0c\x07\x49\x6e\x6e\x65\x72\x20\x31\x05\x00\x30\x00\x30\x2d\x02\x01\x02\x01\x01\xff\x04\x18\x54\x65\x73\x74\x6f\x6c\x6f\x70\x65\x20\x28\x6f\x63\x74\x65\x74\x5f\x73\x74\x72\x69\x6e\x67\x29\x0c\x07\x49\x6e\x6e\x65\x72\x20\x32\x05\x00\x30\x00".as_ref();
+		assert_eq!(encoded, expected);
+		
+		// Decode
+		let decoded = Outer::from_der_encoded(encoded).unwrap();
+		assert_eq!(decoded, outer);
 	}
 }
