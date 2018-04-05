@@ -1,7 +1,9 @@
 [package]
 name = "asn1_der"
 version = "0.5.0"
-authors = ["KizzyCode Software Labs./Keziah Biermann"]
+authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
+license = "BSD 2-Clause OR MIT"
+readme = "README.md"
 
 [dependencies]
 etrace = { git = "https://github.com/KizzyCode/etrace" }
