@@ -49,19 +49,17 @@ let my_customer = Customer::from_der_encoded(encoded).unwrap(); // This returns 
 ```
 
 
+Dependencies
+------------
+Only my [`etrace`-crate](https://github.com/KizzyCode/etrace)
+
+
 Build Documentation and Library:
 --------------------------------
 To build and open the documentation, go into the project's root-directory and run `cargo doc --release --open`
 
 To build this library, change into the projects root-directory and run `cargo build --release`; you can find the build
 in `target/release`.
-
-
-Guarantees:
------------
-I do not provide any guarantees about anything regarding this library (see license).
-However I tried to create extensive tests and because this library only uses `safe Rust` so you _should_ at least be
-safe against memory-corruption issues like buffer-overflows etc.
 
 
 Long-Term Goals:
