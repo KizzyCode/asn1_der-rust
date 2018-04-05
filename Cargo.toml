@@ -8,4 +8,4 @@ repository = "https://github.com/KizzyCode/asn1_der"
 readme = "README.md"
 
 [dependencies]
-etrace = { git = "https://github.com/KizzyCode/etrace" }
+etrace = "0.2.7"
