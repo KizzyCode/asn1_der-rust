@@ -1,6 +1,31 @@
 use std;
 use super::{ Error, Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
 
+macro_rules! impl_from_der_encoded {
+    ($t:ty) => {
+    	impl $crate::FromDerEncoded for $t {
+			fn from_der_encoded(data: Vec<u8>) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+				let der_object: $crate::DerObject = try_err!($crate::DerObject::from_der_encoded(data));
+				Ok(try_err!(Self::from_der_object(der_object)))
+			}
+			fn with_der_encoded(data: &[u8]) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+				let der_object: $crate::DerObject = try_err!($crate::DerObject::with_der_encoded(data));
+				Ok(try_err!(Self::from_der_object(der_object)))
+			}
+		}
+    };
+}
+macro_rules! impl_into_der_encoded {
+    ($t:ty) => {
+    	impl $crate::IntoDerEncoded for $t {
+			fn into_der_encoded(self) -> Vec<u8> {
+				self.into_der_object().into_der_encoded()
+			}
+		}
+    };
+}
+
+
 impl FromDerObject for () {
 	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
 		// Validate tag and extract payload
@@ -9,6 +34,8 @@ impl FromDerObject for () {
 		Ok(())
 	}
 }
+impl_from_der_encoded!(());
+
 impl FromDerObject for bool {
 	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
 		// Validate tag and parse payload
@@ -17,6 +44,8 @@ impl FromDerObject for bool {
 		Ok(der_object.payload[0] == 0xff)
 	}
 }
+impl_from_der_encoded!(bool);
+
 impl FromDerObject for Vec<u8> {
 	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
 		// Validate tag and extract payload
@@ -24,6 +53,8 @@ impl FromDerObject for Vec<u8> {
 		Ok(der_object.payload)
 	}
 }
+impl_from_der_encoded!(Vec<u8>);
+
 impl FromDerObject for String {
 	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
 		// Validate tag and extract payload
@@ -32,6 +63,8 @@ impl FromDerObject for String {
 			else { throw_err!(Asn1DerError::InvalidEncoding) }
 	}
 }
+impl_from_der_encoded!(String);
+
 impl FromDerObject for u64 {
 	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
 		// Validate tag and encoding
@@ -46,24 +79,14 @@ impl FromDerObject for u64 {
 		Ok(be_decode(&der_object.payload[to_skip ..]))
 	}
 }
-impl FromDerObject for Vec<DerObject> {
+impl_from_der_encoded!(u64);
+
+impl<T> FromDerObject for Vec<T> where T: FromDerObject {
 	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
 		// Validate tag
 		if der_object.tag != 0x30 { throw_err!(Asn1DerError::InvalidTag) }
 		
-		// Decode sub-objects
-		let (mut der_objects, mut position) = (Vec::new(), 0);
-		while position < der_object.payload.len() {
-			// Decode element at `position`
-			let decoded = DerObject::with_der_encoded(&der_object.payload[position ..])?;
-			position += decoded.encoded_length();
-			der_objects.push(decoded)
-		}
-		Ok(der_objects)
-	}
-}
-impl<T> FromDerObject for Vec<T> where T: FromDerObject {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+		// Parse payload
 		let (mut objects, mut position) = (Vec::new(), 0);
 		while position < der_object.payload.len() {
 			// Decode element at `position`
@@ -77,6 +100,16 @@ impl<T> FromDerObject for Vec<T> where T: FromDerObject {
 		Ok(objects)
 	}
 }
+impl<T> FromDerEncoded for Vec<T> where T: FromDerObject {
+	fn from_der_encoded(data: Vec<u8>) -> Result<Self, Error<Asn1DerError>> {
+		let der_object: DerObject = try_err!(DerObject::from_der_encoded(data));
+		Ok(try_err!(Self::from_der_object(der_object)))
+	}
+	fn with_der_encoded(data: &[u8]) -> Result<Self, Error<Asn1DerError>> {
+		let der_object: DerObject = try_err!(DerObject::with_der_encoded(data));
+		Ok(try_err!(Self::from_der_object(der_object)))
+	}
+}
 
 
 impl IntoDerObject for () {
@@ -84,21 +117,29 @@ impl IntoDerObject for () {
 		DerObject::new(0x05, Vec::new())
 	}
 }
+impl_into_der_encoded!(());
+
 impl IntoDerObject for bool {
 	fn into_der_object(self) -> DerObject {
 		DerObject::new(0x01, if self { vec![0xff] } else { vec![0x00] })
 	}
 }
+impl_into_der_encoded!(bool);
+
 impl IntoDerObject for Vec<u8> {
 	fn into_der_object(self) -> DerObject {
 		DerObject::new(0x04, self)
 	}
 }
+impl_into_der_encoded!(Vec<u8>);
+
 impl IntoDerObject for String {
 	fn into_der_object(self) -> DerObject {
 		DerObject::new(0x0c, self.into())
 	}
 }
+impl_into_der_encoded!(String);
+
 impl IntoDerObject for u64 {
 	fn into_der_object(self) -> DerObject {
 		// Check if we need a leading zero-byte as unsigned-indicator
@@ -112,17 +153,17 @@ impl IntoDerObject for u64 {
 		DerObject::new(0x02, payload)
 	}
 }
-impl IntoDerObject for Vec<DerObject> {
-	fn into_der_object(self) -> DerObject {
-		let mut payload = Vec::with_capacity(self.iter().fold(0, |l, d| l + d.encoded_length()));
-		for der_object in self { payload.append(&mut der_object.into_der_encoded()) }
-		DerObject::new(0x30, payload)
-	}
-}
+impl_into_der_encoded!(u64);
+
 impl<T> IntoDerObject for Vec<T> where T: IntoDerObject {
 	fn into_der_object(self) -> DerObject {
 		let mut payload = Vec::new();
-		for object in self { payload.append(&mut object.into_der_encoded()) }
+		for object in self { payload.append(&mut object.into_der_object().into_der_encoded()) }
 		DerObject::new(0x30, payload)
+	}
+}
+impl<T> IntoDerEncoded for Vec<T> where T: IntoDerObject {
+	fn into_der_encoded(self) -> Vec<u8> {
+		self.into_der_object().into_der_encoded()
 	}
 }

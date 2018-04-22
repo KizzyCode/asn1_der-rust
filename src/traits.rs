@@ -61,14 +61,6 @@ pub trait FromDerEncoded where Self: Sized {
 	///  - `Asn1DerError::InvalidTag` if the tag annotates an incompatible type
 	fn with_der_encoded(data: &[u8]) -> Result<Self, Error<Asn1DerError>>;
 }
-impl<T> FromDerEncoded for T where T: FromDerObject {
-	fn from_der_encoded(data: Vec<u8>) -> Result<Self, Error<Asn1DerError>> {
-		T::from_der_object(try_err!(DerObject::from_der_encoded(data)))
-	}
-	fn with_der_encoded(data: &[u8]) -> Result<Self, Error<Asn1DerError>> {
-		T::from_der_object(try_err!(DerObject::with_der_encoded(data)))
-	}
-}
 
 
 /// A trait to convert native types into their DER-encoded representation
@@ -77,9 +69,4 @@ pub trait IntoDerEncoded {
 	///
 	/// Returns the DER-encoded data
 	fn into_der_encoded(self) -> Vec<u8>;
-}
-impl<T> IntoDerEncoded for T where T: IntoDerObject {
-	fn into_der_encoded(self) -> Vec<u8> {
-		self.into_der_object().into_der_encoded()
-	}
 }

@@ -48,6 +48,16 @@ macro_rules! asn1_der_impl {
     			})
     		}
     	}
+    	impl $crate::FromDerEncoded for $struct_name {
+			fn from_der_encoded(data: Vec<u8>) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+				let der_object: $crate::DerObject = try_err!($crate::DerObject::from_der_encoded(data));
+				Ok(try_err!(Self::from_der_object(der_object)))
+			}
+			fn with_der_encoded(data: &[u8]) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+				let der_object: $crate::DerObject = try_err!($crate::DerObject::with_der_encoded(data));
+				Ok(try_err!(Self::from_der_object(der_object)))
+			}
+		}
     	
     	impl $crate::IntoDerObject for $struct_name {
     		fn into_der_object(self) -> $crate::DerObject {
@@ -56,5 +66,10 @@ macro_rules! asn1_der_impl {
     			seq.into_der_object()
     		}
     	}
+    	impl $crate::IntoDerEncoded for $struct_name {
+			fn into_der_encoded(self) -> Vec<u8> {
+				self.into_der_object().into_der_encoded()
+			}
+		}
     };
 }

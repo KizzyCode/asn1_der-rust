@@ -1,5 +1,5 @@
 use std;
-use super::{ Error, Asn1DerError, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
+use super::{ Error, Asn1DerError, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
 
 
 /// Tries to decode the length of an DER-encoded object
@@ -111,6 +111,16 @@ impl DerObject {
 	/// Computes the DER-encoded-length of this object without encoding it
 	pub fn encoded_length(&self) -> usize {
 		1 + length_field_size(self.payload.len()) + self.payload.len()
+	}
+}
+impl FromDerObject for DerObject {
+	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+		Ok(der_object)
+	}
+}
+impl IntoDerObject for DerObject {
+	fn into_der_object(self) -> DerObject {
+		self
 	}
 }
 impl FromDerEncoded for DerObject {
