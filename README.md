@@ -22,6 +22,9 @@ The following types have built-in support:
  - `Vec<DerObject>`: The ASN.1-SEQUENCE-type
  - `Vec<T>`: The ASN.1-SEQUENCE-type for sequences that contain only one type `T` (e.g. `Vec<String>` for a sequence
    that contains only UTF8Strings)
+ - Experimental: Each map-type with strings as key and any supported type as value. This is feature-gated with "map".
+   For implementation- and format-details (DER has no standardized support for maps), take a look at the module
+   documentation.
 
 The macro `asn1_der_impl!` helps you to "derive" the trait-implementations for your own structs; e.g.:
 ```rust
