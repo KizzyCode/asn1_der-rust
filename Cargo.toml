@@ -7,5 +7,9 @@ license = "BSD-2-Clause OR MIT"
 repository = "https://github.com/KizzyCode/asn1_der"
 readme = "README.md"
 
+[features]
+default = []
+map = []
+
 [dependencies]
 etrace = "0.2.7"

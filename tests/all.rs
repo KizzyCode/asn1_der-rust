@@ -4,6 +4,7 @@
 mod tests {
 	use std::fmt::Debug;
 	use super::asn1_der::{ Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded };
+	#[cfg(feature="map")] use super::{ asn1_der::map::DerMapOrdered, std::{ cmp::Ordering, collections::HashMap } };
 	
 	
 	#[test]
@@ -45,7 +46,6 @@ mod tests {
 	}
 	
 	
-	
 	#[inline]
 	fn typed_ok<T>(test_vectors: &[(&[u8], T)]) where T: FromDerObject + IntoDerObject + FromDerEncoded + IntoDerEncoded + Eq + Clone + Debug {
 		test_vectors.iter().for_each(|&(encoded, ref expected)| {
@@ -85,8 +85,6 @@ mod tests {
 			assert_eq!(decoding_err.kind, *error);
 		});
 	}
-	
-	
 	
 	
 	#[test]
@@ -198,6 +196,48 @@ mod tests {
 			(b"\x30\x04\x05\x03\x37\xe4".as_ref(), Asn1DerError::NotEnoughBytes)
 		];
 		typed_err::<Vec<DerObject>>(&test_vectors);
+	}
+	
+	
+	#[cfg(feature="map")] #[test]
+	fn der_ordered_ordering() {
+		[
+			// (left: 0, right: 1, result: 2)
+			("Testolope", "Uestolope", Ordering::Less),
+			("Testolope", "Testolope", Ordering::Equal),
+			("Testolope", "testolope", Ordering::Less),
+			("testolope", "Testolope", Ordering::Greater),
+			("Testolope", "Testolop", Ordering::Greater),
+			("Testolop", "Testolope", Ordering::Less)
+		].iter().for_each(|t| {
+			let ordering = t.0.to_string().ordering(&t.1.to_string());
+			assert_eq!(ordering, t.2);
+		})
+	}
+	#[cfg(feature="map")] #[test]
+	fn map_ok() {
+		macro_rules! map {
+		    ($($key:expr => $value:expr),*) => ({
+		    	let mut map = HashMap::new();
+		    	$(map.insert($key, $value);)*;
+		    	map
+		    });
+		}
+		
+		let test_vectors = [
+			(b"\x30\x31\x0c\x03\x4e\x75\x6c\x02\x01\x00\x0c\x04\x4e\x75\x6c\x6c\x02\x01\x00\x0c\x03\x4f\x6e\x65\x02\x01\x01\x0c\x04\x6e\x75\x6c\x6c\x02\x01\x00\x0c\x02\x6f\x6e\x02\x01\x01\x0c\x03\x6f\x6e\x65\x02\x01\x01".as_ref(),
+			 map!("Nul".to_string() => 0, "Null".to_string() => 0, "null".to_string() => 0, "One".to_string() => 1, "one".to_string() => 1, "on".to_string() => 1))
+		];
+		typed_ok(&test_vectors);
+	}
+	#[test]
+	fn map_err() {
+		let test_vectors = [
+			(b"\x31\x00".as_ref(), Asn1DerError::InvalidTag),
+			(b"\x30\x04\x05\x03\x37\xe4".as_ref(), Asn1DerError::NotEnoughBytes),
+			(b"\x30\x2c\x02\x01\x00\x0c\x04\x4e\x75\x6c\x6c\x02\x01\x00\x0c\x03\x4f\x6e\x65\x02\x01\x01\x0c\x04\x6e\x75\x6c\x6c\x02\x01\x00\x0c\x02\x6f\x6e\x02\x01\x01\x0c\x03\x6f\x6e\x65\x02\x01\x01".as_ref(), Asn1DerError::InvalidEncoding)
+		];
+		typed_err::<HashMap<String, u64>>(&test_vectors);
 	}
 	
 	

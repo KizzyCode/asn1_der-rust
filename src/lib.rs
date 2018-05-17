@@ -25,6 +25,7 @@ pub mod der;
 pub mod type_impls;
 #[doc(hidden)]
 pub mod macros;
+#[cfg(feature="map")] pub mod map;
 
 pub use etrace::Error;
 pub use traits::{ IntoDerObject, FromDerObject, FromDerEncoded, IntoDerEncoded };
