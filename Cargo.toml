@@ -1,6 +1,6 @@
 [package]
 name = "asn1_der"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
 description = "This library provides a simple ASN.1-DER en-/decoder"
 license = "BSD-2-Clause OR MIT"
