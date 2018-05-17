@@ -230,7 +230,7 @@ mod tests {
 		];
 		typed_ok(&test_vectors);
 	}
-	#[test]
+	#[cfg(feature="map")] #[test]
 	fn map_err() {
 		let test_vectors = [
 			(b"\x31\x00".as_ref(), Asn1DerError::InvalidTag),
