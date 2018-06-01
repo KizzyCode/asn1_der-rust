@@ -44,6 +44,7 @@ pub enum Asn1DerError {
 	/// The element might be valid but is not supported by this implementation
 	Unsupported
 }
+unsafe impl Send for Asn1DerError {}
 pub type Result<T> = std::result::Result<T, Error<Asn1DerError>>;
 
 
