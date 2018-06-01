@@ -1,7 +1,7 @@
-use super::{ Error, Asn1DerError, DerObject, FromDerObject };
+use super::{ Result, Asn1DerError, DerObject, FromDerObject };
 
 #[inline] #[doc(hidden)]
-pub fn parse_next<T: FromDerObject>(iter: &mut Iterator<Item = &DerObject>) -> Result<T, Error<Asn1DerError>> {
+pub fn parse_next<T: FromDerObject>(iter: &mut Iterator<Item = &DerObject>) -> Result<T> {
 	let der_object = some_or!(iter.next(), throw_err!(Asn1DerError::NotEnoughBytes));
 	Ok(try_err!(T::from_der_object(der_object.clone())))
 }
@@ -39,7 +39,7 @@ pub fn parse_next<T: FromDerObject>(iter: &mut Iterator<Item = &DerObject>) -> R
 macro_rules! asn1_der_impl {
     ($struct_name:ident { $($field_name:ident),+ }) => {
     	impl $crate::FromDerObject for $struct_name {
-    		fn from_der_object(der_object: $crate::DerObject) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+    		fn from_der_object(der_object: $crate::DerObject) -> $crate::Result<Self> {
     			let seq = try_err!(Vec::<$crate::DerObject>::from_der_object(der_object));
     			let mut seq_iter = seq.iter();
     			
@@ -49,11 +49,11 @@ macro_rules! asn1_der_impl {
     		}
     	}
     	impl $crate::FromDerEncoded for $struct_name {
-			fn from_der_encoded(data: Vec<u8>) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+			fn from_der_encoded(data: Vec<u8>) -> $crate::Result<Self> {
 				let der_object: $crate::DerObject = try_err!($crate::DerObject::from_der_encoded(data));
 				Ok(try_err!(Self::from_der_object(der_object)))
 			}
-			fn with_der_encoded(data: &[u8]) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+			fn with_der_encoded(data: &[u8]) -> $crate::Result<Self> {
 				let der_object: $crate::DerObject = try_err!($crate::DerObject::with_der_encoded(data));
 				Ok(try_err!(Self::from_der_object(der_object)))
 			}
