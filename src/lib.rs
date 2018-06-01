@@ -44,6 +44,7 @@ pub enum Asn1DerError {
 	/// The element might be valid but is not supported by this implementation
 	Unsupported
 }
+pub type Result<T> = std::result::Result<T, Error<Asn1DerError>>;
 
 
 /// Decodes a big-endian-encoded unsigned integer

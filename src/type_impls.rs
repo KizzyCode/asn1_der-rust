@@ -1,14 +1,14 @@
 use std;
-use super::{ Error, Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
+use super::{ Result, Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
 
 macro_rules! impl_from_der_encoded {
     ($t:ty) => {
     	impl $crate::FromDerEncoded for $t {
-			fn from_der_encoded(data: Vec<u8>) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+			fn from_der_encoded(data: Vec<u8>) -> $crate::Result<Self> {
 				let der_object: $crate::DerObject = try_err!($crate::DerObject::from_der_encoded(data));
 				Ok(try_err!(Self::from_der_object(der_object)))
 			}
-			fn with_der_encoded(data: &[u8]) -> Result<Self, $crate::Error<$crate::Asn1DerError>> {
+			fn with_der_encoded(data: &[u8]) -> $crate::Result<Self> {
 				let der_object: $crate::DerObject = try_err!($crate::DerObject::with_der_encoded(data));
 				Ok(try_err!(Self::from_der_object(der_object)))
 			}
@@ -27,7 +27,7 @@ macro_rules! impl_into_der_encoded {
 
 
 impl FromDerObject for () {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Validate tag and extract payload
 		if der_object.tag != 0x05 { throw_err!(Asn1DerError::InvalidTag) }
 		if der_object.payload.len() != 0 { throw_err!(Asn1DerError::InvalidEncoding) }
@@ -37,7 +37,7 @@ impl FromDerObject for () {
 impl_from_der_encoded!(());
 
 impl FromDerObject for bool {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Validate tag and parse payload
 		if der_object.tag != 0x01 { throw_err!(Asn1DerError::InvalidTag) }
 		if der_object.payload.len() != 1 || ![0xff, 0x00].contains(&der_object.payload[0]) { throw_err!(Asn1DerError::InvalidEncoding) }
@@ -47,7 +47,7 @@ impl FromDerObject for bool {
 impl_from_der_encoded!(bool);
 
 impl FromDerObject for Vec<u8> {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Validate tag and extract payload
 		if der_object.tag != 0x04 { throw_err!(Asn1DerError::InvalidTag) }
 		Ok(der_object.payload)
@@ -56,7 +56,7 @@ impl FromDerObject for Vec<u8> {
 impl_from_der_encoded!(Vec<u8>);
 
 impl FromDerObject for String {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Validate tag and extract payload
 		if der_object.tag != 0x0c { throw_err!(Asn1DerError::InvalidTag) }
 		if let Ok(string) = String::from_utf8(der_object.payload) { Ok(string) }
@@ -66,7 +66,7 @@ impl FromDerObject for String {
 impl_from_der_encoded!(String);
 
 impl FromDerObject for u64 {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Validate tag and encoding
 		if der_object.tag != 0x02 { throw_err!(Asn1DerError::InvalidTag) }
 			else if der_object.payload.len() == 0 { throw_err!(Asn1DerError::InvalidEncoding) }
@@ -82,7 +82,7 @@ impl FromDerObject for u64 {
 impl_from_der_encoded!(u64);
 
 impl<T> FromDerObject for Vec<T> where T: FromDerObject {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Validate tag
 		if der_object.tag != 0x30 { throw_err!(Asn1DerError::InvalidTag) }
 		
@@ -101,11 +101,11 @@ impl<T> FromDerObject for Vec<T> where T: FromDerObject {
 	}
 }
 impl<T> FromDerEncoded for Vec<T> where T: FromDerObject {
-	fn from_der_encoded(data: Vec<u8>) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_encoded(data: Vec<u8>) -> Result<Self> {
 		let der_object: DerObject = try_err!(DerObject::from_der_encoded(data));
 		Ok(try_err!(Self::from_der_object(der_object)))
 	}
-	fn with_der_encoded(data: &[u8]) -> Result<Self, Error<Asn1DerError>> {
+	fn with_der_encoded(data: &[u8]) -> Result<Self> {
 		let der_object: DerObject = try_err!(DerObject::with_der_encoded(data));
 		Ok(try_err!(Self::from_der_object(der_object)))
 	}

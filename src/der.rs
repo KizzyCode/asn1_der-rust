@@ -1,5 +1,5 @@
 use std;
-use super::{ Error, Asn1DerError, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
+use super::{ Result, Asn1DerError, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
 
 
 /// Tries to decode the length of an DER-encoded object
@@ -18,7 +18,7 @@ use super::{ Error, Asn1DerError, FromDerObject, IntoDerObject, FromDerEncoded, 
 ///     - `Asn1DerError::InvalidEncoding` if the length-field is invalid
 ///     - `Asn1DerError::Unsupported` if the length is greater than
 ///       [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html)
-pub fn try_decode_length(data: &[u8]) -> Result<Option<(usize, usize)>, Error<Asn1DerError>> {
+pub fn try_decode_length(data: &[u8]) -> Result<Option<(usize, usize)>> {
 	// Validate if we have at least one length-byte
 	if data.len() < 2 { return Ok(None) }
 	
@@ -44,7 +44,7 @@ pub fn try_decode_length(data: &[u8]) -> Result<Option<(usize, usize)>, Error<As
 ///     - `Asn1DerError::NotEnoughBytes` if the length-field is too short
 ///     - `Asn1DerError::Unsupported` if the length is greater than
 ///       [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html)
-pub fn decode_length(length_bytes: &[u8]) -> Result<(usize, usize), Error<Asn1DerError>> {
+pub fn decode_length(length_bytes: &[u8]) -> Result<(usize, usize)> {
 	// Validate first length-byte
 	if length_bytes.len() < 1 { throw_err!(Asn1DerError::NotEnoughBytes) }
 	let (mut length, mut byte_count) = (length_bytes[0] as usize, 1usize);
@@ -114,7 +114,7 @@ impl DerObject {
 	}
 }
 impl FromDerObject for DerObject {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		Ok(der_object)
 	}
 }
@@ -135,7 +135,7 @@ impl FromDerEncoded for DerObject {
 	///  - `Asn1DerError::InvalidEncoding` if the length-field is invalid
 	///  - `Asn1DerError::Unsupported` if the length is greater than
 	///    [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html)
-	fn from_der_encoded(mut data: Vec<u8>) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_encoded(mut data: Vec<u8>) -> Result<Self> {
 		// Validate minimum-length
 		if data.len() < 1 { throw_err!(Asn1DerError::NotEnoughBytes) }
 		
@@ -166,7 +166,7 @@ impl FromDerEncoded for DerObject {
 	///  - `Asn1DerError::InvalidEncoding` if the length-field is invalid
 	///  - `Asn1DerError::Unsupported` if the length is greater than
 	///    [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html)
-	fn with_der_encoded(data: &[u8]) -> Result<Self, Error<Asn1DerError>> {
+	fn with_der_encoded(data: &[u8]) -> Result<Self> {
 		// Validate minimum-length
 		if data.len() < 1 { throw_err!(Asn1DerError::NotEnoughBytes) }
 		

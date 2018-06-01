@@ -1,4 +1,4 @@
-use super::{ Error, Asn1DerError, DerObject };
+use super::{ Result, DerObject };
 
 /// A trait to parse `DerObject`s into native types
 pub trait FromDerObject where Self: Sized {
@@ -10,7 +10,7 @@ pub trait FromDerObject where Self: Sized {
 	///  - `Asn1DerError::Unsupported` if the encoded object is unsupported by this implementation
 	///    (e.g. an integer that is too large)
 	///  - `Asn1DerError::InvalidTag` if the tag annotates an incompatible type
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>>;
+	fn from_der_object(der_object: DerObject) -> Result<Self>;
 }
 
 
@@ -39,7 +39,7 @@ pub trait FromDerEncoded where Self: Sized {
 	///    [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html) or if the
 	///    encoded object is unsupported by this implementation (e.g. an integer that is too large)
 	///  - `Asn1DerError::InvalidTag` if the tag annotates an incompatible type
-	fn from_der_encoded(data: Vec<u8>) -> Result<Self, Error<Asn1DerError>>;
+	fn from_der_encoded(data: Vec<u8>) -> Result<Self>;
 	
 	/// Decodes some DER-encoded data and converts them into `Self`
 	///
@@ -59,7 +59,7 @@ pub trait FromDerEncoded where Self: Sized {
 	///    [`std::usize::MAX`](https://doc.rust-lang.org/std/usize/constant.MAX.html) or if the
 	///    encoded object is unsupported by this implementation (e.g. an integer that is too large)
 	///  - `Asn1DerError::InvalidTag` if the tag annotates an incompatible type
-	fn with_der_encoded(data: &[u8]) -> Result<Self, Error<Asn1DerError>>;
+	fn with_der_encoded(data: &[u8]) -> Result<Self>;
 }
 
 

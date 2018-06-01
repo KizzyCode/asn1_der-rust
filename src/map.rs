@@ -18,7 +18,7 @@
 //!     comes first.
 
 use std;
-use super::{ Error, Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded };
+use super::{ Result, Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded };
 
 
 /// This trait defines that a type has a constant well defined and predictable order
@@ -89,7 +89,7 @@ impl<K, V> Map for std::collections::BTreeMap<K, V> where K: Ord + std::hash::Ha
 
 
 impl<M> FromDerObject for M where M: Map<Key=String>, M::Value: FromDerObject {
-	fn from_der_object(der_object: DerObject) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Parse DER-objects
 		let der_objects: Vec<DerObject> = try_err!(Vec::from_der_object(der_object));
 		if der_objects.len() % 2 != 0 { throw_err!(Asn1DerError::InvalidEncoding, "The sequence cannot be decoded as a map") }
@@ -106,11 +106,11 @@ impl<M> FromDerObject for M where M: Map<Key=String>, M::Value: FromDerObject {
 	}
 }
 impl<M> FromDerEncoded for M where M: Map<Key=String>, M::Value: FromDerObject {
-	fn from_der_encoded(data: Vec<u8>) -> Result<Self, Error<Asn1DerError>> {
+	fn from_der_encoded(data: Vec<u8>) -> Result<Self> {
 		let der_object: DerObject = try_err!(DerObject::from_der_encoded(data));
 		Ok(try_err!(Self::from_der_object(der_object)))
 	}
-	fn with_der_encoded(data: &[u8]) -> Result<Self, Error<Asn1DerError>> {
+	fn with_der_encoded(data: &[u8]) -> Result<Self> {
 		let der_object: DerObject = try_err!(DerObject::with_der_encoded(data));
 		Ok(try_err!(Self::from_der_object(der_object)))
 	}
