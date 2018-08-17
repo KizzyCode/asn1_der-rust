@@ -1,0 +1,15 @@
+language: rust
+rust:
+  - stable
+
+os:
+  - linux
+  - osx
+
+compiler:
+  - gcc
+  - clang
+
+script:
+  - cargo test --verbose
+  - cargo test --verbose --release
