@@ -1,6 +1,7 @@
 [![License](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Travis CI](https://travis-ci.org/KizzyCode/asn1_der.svg?branch=master)](https://travis-ci.org/KizzyCode/asn1_der)
+[![AppVeyor CI](https://ci.appveyor.com/api/projects/status/github/KizzyCode/asn1_der?svg=true)](https://ci.appveyor.com/project/KizzyCode/asn1-der)
 
 asn1_der
 ========

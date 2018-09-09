@@ -11,5 +11,9 @@ readme = "README.md"
 default = []
 map = []
 
+[badges]
+travis-ci = { repository = "KizzyCode/asn1_der" }
+appveyor = { repository = "KizzyCode/asn1_der" }
+
 [dependencies]
 etrace = "1.1.0"
