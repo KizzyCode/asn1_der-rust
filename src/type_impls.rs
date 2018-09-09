@@ -1,5 +1,4 @@
-use std;
-use super::{ Result, Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
+use super::{ Result, Asn1DerError, DerObject, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded };
 
 macro_rules! impl_from_der_encoded {
     ($t:ty) => {
@@ -46,15 +45,6 @@ impl FromDerObject for bool {
 }
 impl_from_der_encoded!(bool);
 
-impl FromDerObject for Vec<u8> {
-	fn from_der_object(der_object: DerObject) -> Result<Self> {
-		// Validate tag and extract payload
-		if der_object.tag != 0x04 { throw_err!(Asn1DerError::InvalidTag) }
-		Ok(der_object.payload)
-	}
-}
-impl_from_der_encoded!(Vec<u8>);
-
 impl FromDerObject for String {
 	fn from_der_object(der_object: DerObject) -> Result<Self> {
 		// Validate tag and extract payload
@@ -65,21 +55,39 @@ impl FromDerObject for String {
 }
 impl_from_der_encoded!(String);
 
-impl FromDerObject for u64 {
+macro_rules! impl_from_der_object_num {
+	($utype:ty) => {
+		impl $crate::FromDerObject for $utype {
+			fn from_der_object(der_object: $crate::DerObject) -> $crate::Result<Self> {
+				// Validate tag and encoding
+				if der_object.tag != 0x02 { throw_err!($crate::Asn1DerError::InvalidTag) }
+					else if der_object.payload.len() == 0 { throw_err!($crate::Asn1DerError::InvalidEncoding) }
+				
+				// The leading byte only indicates that the number is unsigned and can be skipped
+				let to_skip = if der_object.payload[0] == 0x00 { 1 } else { 0 };
+				
+				// Check that the number is not too large or signed and decode it
+				if der_object.payload.len() - to_skip > ::std::mem::size_of::<$utype>()
+					|| der_object.payload[0] & 0x80 != 0 { throw_err!($crate::Asn1DerError::Unsupported, "Integer is greater than type::MAX") }
+				Ok(be_decode!(&der_object.payload[to_skip ..] => $utype))
+			}
+		}
+		impl_from_der_encoded!($utype);
+	};
+}
+impl_from_der_object_num!(usize);
+impl_from_der_object_num!(u64);
+impl_from_der_object_num!(u32);
+impl_from_der_object_num!(u16);
+
+impl FromDerObject for Vec<u8> {
 	fn from_der_object(der_object: DerObject) -> Result<Self> {
-		// Validate tag and encoding
-		if der_object.tag != 0x02 { throw_err!(Asn1DerError::InvalidTag) }
-			else if der_object.payload.len() == 0 { throw_err!(Asn1DerError::InvalidEncoding) }
-		
-		// The leading byte only indicates that the number is unsigned and can be skipped
-		let to_skip = if der_object.payload[0] == 0x00 { 1 } else { 0 };
-		
-		// Check that the number is not too large or signed and decode it
-		if der_object.payload.len() - to_skip > std::mem::size_of::<u64>() || der_object.payload[0] & 0x80 != 0 { throw_err!(Asn1DerError::Unsupported, "Only integers [0, 2^64) are supported") }
-		Ok(be_decode(&der_object.payload[to_skip ..]))
+		// Validate tag and extract payload
+		if der_object.tag != 0x04 { throw_err!(Asn1DerError::InvalidTag) }
+		Ok(der_object.payload)
 	}
 }
-impl_from_der_encoded!(u64);
+impl_from_der_encoded!(Vec<u8>);
 
 impl<T> FromDerObject for Vec<T> where T: FromDerObject {
 	fn from_der_object(der_object: DerObject) -> Result<Self> {
@@ -126,13 +134,6 @@ impl IntoDerObject for bool {
 }
 impl_into_der_encoded!(bool);
 
-impl IntoDerObject for Vec<u8> {
-	fn into_der_object(self) -> DerObject {
-		DerObject::new(0x04, self)
-	}
-}
-impl_into_der_encoded!(Vec<u8>);
-
 impl IntoDerObject for String {
 	fn into_der_object(self) -> DerObject {
 		DerObject::new(0x0c, self.into())
@@ -140,20 +141,35 @@ impl IntoDerObject for String {
 }
 impl_into_der_encoded!(String);
 
-impl IntoDerObject for u64 {
+macro_rules! impl_into_der_object_num {
+	($utype:ty, sized: $itype:ident) => {
+		impl $crate::IntoDerObject for $utype {
+			fn into_der_object(mut self) -> $crate::DerObject {
+				// Check if we need a leading zero-byte as unsigned-indicator
+				let leading_zeros = if self > ::std::$itype::MAX as $utype { 1usize } else { 0usize };
+				// Compute the payload-size (must be at least one because even `0x00` is represented in one byte)
+				let payload_length = ::std::cmp::max(::std::mem::size_of::<$utype>() - (self.leading_zeros() as usize / 8), 1);
+				
+				// Create payload and encode number
+				let mut payload = vec![0u8; leading_zeros + payload_length];
+				be_encode!(self => &mut payload[leading_zeros ..]);
+				$crate::DerObject::new(0x02, payload)
+			}
+		}
+		impl_into_der_encoded!($utype);
+	};
+}
+impl_into_der_object_num!(usize, sized: isize);
+impl_into_der_object_num!(u64, sized: i64);
+impl_into_der_object_num!(u32, sized: i32);
+impl_into_der_object_num!(u16, sized: i16);
+
+impl IntoDerObject for Vec<u8> {
 	fn into_der_object(self) -> DerObject {
-		// Check if we need a leading zero-byte as unsigned-indicator
-		let leading_zeros = if self > std::i64::MAX as u64 { 1usize } else { 0usize };
-		// Compute the payload-size (must be at least one because even `0x00` is represented in one byte)
-		let payload_length = std::cmp::max(std::mem::size_of::<u64>() - (self.leading_zeros() as usize / 8), 1);
-		
-		// Create payload and encode number
-		let mut payload = vec![0u8; leading_zeros + payload_length];
-		be_encode(&mut payload[leading_zeros ..], self);
-		DerObject::new(0x02, payload)
+		DerObject::new(0x04, self)
 	}
 }
-impl_into_der_encoded!(u64);
+impl_into_der_encoded!(Vec<u8>);
 
 impl<T> IntoDerObject for Vec<T> where T: IntoDerObject {
 	fn into_der_object(self) -> DerObject {

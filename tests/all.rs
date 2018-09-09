@@ -157,24 +157,72 @@ fn utf8_string_err() {
 
 #[test]
 fn integer_ok() {
-	let test_vectors = [
-		(b"\x02\x01\x00".as_ref(), 0u64),
-		(b"\x02\x01\x07".as_ref(), 7u64),
-		(b"\x02\x08\x7f\xf7\xd3\x17\xce\xf1\xa7\x26".as_ref(), 9221070861274031910u64),
-		(b"\x02\x09\x00\x80\xa5\x4c\x7f\xe5\x0d\x84\xa0".as_ref(), 9269899520199460000u64),
-		(b"\x02\x09\x00\xff\xff\xff\xff\xff\xff\xff\xff".as_ref(), 18446744073709551615u64)
-	];
-	typed_ok(&test_vectors);
+	#[allow(overflowing_literals)]
+	macro_rules! make_test_vectors {
+		(base, $utype:ty, $($ext:expr),+) => (vec![
+			(b"\x02\x01\x00".as_ref(), 0 as $utype),
+			(b"\x02\x01\x07".as_ref(), 7 as $utype),
+			$($ext),+
+		]);
+		(b64, $utype:ty) => (make_test_vectors!(
+			base, $utype,
+			(b"\x02\x08\x7f\xf7\xd3\x17\xce\xf1\xa7\x26".as_ref(), 9221070861274031910 as $utype),
+			(b"\x02\x09\x00\x80\xa5\x4c\x7f\xe5\x0d\x84\xa0".as_ref(), 9269899520199460000 as $utype),
+			(b"\x02\x09\x00\xff\xff\xff\xff\xff\xff\xff\xff".as_ref(), 18446744073709551615 as $utype)
+		));
+		(b32, $utype:ty) => (make_test_vectors!(
+			base, $utype,
+			(b"\x02\x04\x7f\xf7\xd3\x17".as_ref(), 2146947863 as $utype),
+			(b"\x02\x05\x00\x80\xa5\x4c\x7f".as_ref(), 2158316671 as $utype),
+			(b"\x02\x05\x00\xff\xff\xff\xff".as_ref(), 4294967295 as $utype)
+		));
+		(b16, $utype:ty) => (make_test_vectors!(
+			base, $utype,
+			(b"\x02\x02\x7f\xf7".as_ref(), 32759 as $utype),
+			(b"\x02\x03\x00\x80\xa5".as_ref(), 32933 as $utype),
+			(b"\x02\x03\x00\xff\xff".as_ref(), 65535 as $utype)
+		));
+	};
+	
+	// Test usize conditional
+	#[cfg(target_pointer_width = "64")]
+		typed_ok(&make_test_vectors!(b64, usize));
+	#[cfg(target_pointer_width = "32")]
+		typed_ok(&make_test_vectors!(b32, usize));
+	#[cfg(target_pointer_width = "16")]
+		typed_ok(&make_test_vectors!(b16, usize));
+	
+	// Test fixed size types
+	typed_ok(&make_test_vectors!(b64, u64));
+	typed_ok(&make_test_vectors!(b32, u32));
+	typed_ok(&make_test_vectors!(b16, u16));
 }
 #[test]
 fn integer_err() {
-	let test_vectors = [
-		(b"\x03\x01\x07".as_ref(), Asn1DerError::InvalidTag),
-		(b"\x02\x00".as_ref(), Asn1DerError::InvalidEncoding),
-		(b"\x02\x01\x87".as_ref(), Asn1DerError::Unsupported),
-		(b"\x02\x09\x01\xe3\xa5\x4c\x7f\xe5\x0d\x84\xa0".as_ref(), Asn1DerError::Unsupported)
-	];
-	typed_err::<u64>(&test_vectors);
+	macro_rules! make_test_vectors {
+		(base, $($ext:expr),+) => (vec![
+			(b"\x03\x01\x07".as_ref(), Asn1DerError::InvalidTag),
+			(b"\x02\x00".as_ref(), Asn1DerError::InvalidEncoding),
+			(b"\x02\x01\x87".as_ref(), Asn1DerError::Unsupported),
+			$($ext),+
+	    ]);
+		(b64) => (make_test_vectors!(base, (b"\x02\x09\x01\xe3\xa5\x4c\x7f\xe5\x0d\x84\xa0".as_ref(), Asn1DerError::Unsupported)));
+		(b32) => (make_test_vectors!(base, (b"\x02\x05\x01\xe3\xa5\x4c\x7f".as_ref(), Asn1DerError::Unsupported)));
+		(b16) => (make_test_vectors!(base, (b"\x02\x03\x01\xe3\xa5".as_ref(), Asn1DerError::Unsupported)));
+	}
+	
+	// Test usize conditional
+	#[cfg(target_pointer_width = "64")]
+		typed_err::<usize>(&make_test_vectors!(b64));
+	#[cfg(target_pointer_width = "32")]
+		typed_err::<usize>(&make_test_vectors!(b32));
+	#[cfg(target_pointer_width = "16")]
+		typed_err::<usize>(&make_test_vectors!(b16));
+	
+	// Test fixed size types
+	typed_err::<u64>(&make_test_vectors!(b64));
+	typed_err::<u32>(&make_test_vectors!(b32));
+	typed_err::<u16>(&make_test_vectors!(b16));
 }
 
 
@@ -225,7 +273,7 @@ fn map_ok() {
 	
 	let test_vectors = [
 		(b"\x30\x31\x0c\x03\x4e\x75\x6c\x02\x01\x00\x0c\x04\x4e\x75\x6c\x6c\x02\x01\x00\x0c\x03\x4f\x6e\x65\x02\x01\x01\x0c\x04\x6e\x75\x6c\x6c\x02\x01\x00\x0c\x02\x6f\x6e\x02\x01\x01\x0c\x03\x6f\x6e\x65\x02\x01\x01".as_ref(),
-		 map!("Nul".to_string() => 0, "Null".to_string() => 0, "null".to_string() => 0, "One".to_string() => 1, "one".to_string() => 1, "on".to_string() => 1))
+		 map!("Nul".to_string() => 0u16, "Null".to_string() => 0u16, "null".to_string() => 0u16, "One".to_string() => 1u16, "one".to_string() => 1u16, "on".to_string() => 1u16))
 	];
 	typed_ok(&test_vectors);
 }

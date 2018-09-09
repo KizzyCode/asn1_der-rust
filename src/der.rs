@@ -1,5 +1,5 @@
 use std;
-use super::{ Result, Asn1DerError, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded, be_encode, be_decode };
+use super::{ Result, Asn1DerError, FromDerObject, IntoDerObject, FromDerEncoded, IntoDerEncoded };
 
 
 /// Tries to decode the length of an DER-encoded object
@@ -58,8 +58,7 @@ pub fn decode_length(length_bytes: &[u8]) -> Result<(usize, usize)> {
 		
 		// Decode and validate length (we _must not_ allow multi-byte-encoding for lengths < 128)
 		length = {
-			let length = be_decode(&length_bytes[1 .. byte_count]);
-			if length > std::usize::MAX as u64 { throw_err!(Asn1DerError::Unsupported) }
+			let length = be_decode!(&length_bytes[1 .. byte_count] => usize);
 			if length < 0x80 { throw_err!(Asn1DerError::InvalidEncoding) }
 			length as usize
 		};
@@ -72,7 +71,7 @@ pub fn decode_length(length_bytes: &[u8]) -> Result<(usize, usize)> {
 /// Parameters:
 ///  - `length`: The length to DER-encode
 ///  - `buffer`: The buffer to write the encoded length into
-pub fn encode_length(buffer: &mut[u8], length: usize) {
+pub fn encode_length(buffer: &mut[u8], mut length: usize) {
 	// Get encoded-length-size
 	let byte_count = length_field_size(length);
 	buffer[0] = length as u8;
@@ -80,7 +79,7 @@ pub fn encode_length(buffer: &mut[u8], length: usize) {
 	// Check for multi-byte-length
 	if byte_count > 1 {
 		buffer[0] = 0x80 | (byte_count - 1) as u8;
-		be_encode(&mut buffer[1 ..], length as u64);
+		be_encode!(length => &mut buffer[1 ..]);
 	}
 }
 

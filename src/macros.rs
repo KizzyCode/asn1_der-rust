@@ -1,5 +1,29 @@
 use super::{ Result, Asn1DerError, DerObject, FromDerObject };
 
+/// Decodes a big-endian-encoded unsigned integer
+#[macro_export]
+macro_rules! be_decode {
+	($buffer:expr => $num_type:ty) => ({
+		let mut value: $num_type = 0;
+		for i in 0 .. ::std::cmp::min($buffer.len(), ::std::mem::size_of_val(&value)) {
+			value <<= 8;
+			value |= $buffer[i] as $num_type;
+		}
+		value
+	});
+}
+/// Encodes an unsigned integer using big-endian
+#[macro_export]
+macro_rules! be_encode {
+	($value:expr => $buffer:expr) => ({
+		for i in (0 .. ::std::cmp::min($buffer.len(), ::std::mem::size_of_val(&$value))).rev() {
+			$buffer[i] = $value as u8;
+			$value >>= 8;
+		}
+	})
+}
+
+
 #[inline] #[doc(hidden)]
 pub fn parse_next<T: FromDerObject>(iter: &mut Iterator<Item = &DerObject>) -> Result<T> {
 	let der_object = some_or!(iter.next(), throw_err!(Asn1DerError::NotEnoughBytes));
