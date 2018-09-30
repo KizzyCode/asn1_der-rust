@@ -164,6 +164,12 @@ fn integer_ok() {
 			(b"\x02\x01\x07".as_ref(), 7 as $utype),
 			$($ext),+
 		]);
+		(b128, $utype:ty) => (make_test_vectors!(
+			base, $utype,
+			(b"\x02\x10\x7f\xc8\xa3\xa5\x32\x49\xcc\xf2\x73\xb3\xe9\x4d\xe1\xb6\x33\x61".as_ref(), 169853733957366961371495358725388383073 as $utype),
+			(b"\x02\x11\x00\x80\xc8\xa3\xa5\x32\x49\xcc\xf2\x73\xb3\xe9\x4d\xe1\xb6\x33\x61".as_ref(), 171182961953151877244399165785668727649 as $utype),
+			(b"\x02\x11\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff".as_ref(), 340282366920938463463374607431768211455 as $utype)
+		));
 		(b64, $utype:ty) => (make_test_vectors!(
 			base, $utype,
 			(b"\x02\x08\x7f\xf7\xd3\x17\xce\xf1\xa7\x26".as_ref(), 9221070861274031910 as $utype),
@@ -193,6 +199,7 @@ fn integer_ok() {
 		typed_ok(&make_test_vectors!(b16, usize));
 	
 	// Test fixed size types
+	typed_ok(&make_test_vectors!(b128, u128));
 	typed_ok(&make_test_vectors!(b64, u64));
 	typed_ok(&make_test_vectors!(b32, u32));
 	typed_ok(&make_test_vectors!(b16, u16));
@@ -206,6 +213,7 @@ fn integer_err() {
 			(b"\x02\x01\x87".as_ref(), Asn1DerError::Unsupported),
 			$($ext),+
 	    ]);
+	    (b128) => (make_test_vectors!(base, (b"\x02\x11\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00".as_ref(), Asn1DerError::Unsupported)));
 		(b64) => (make_test_vectors!(base, (b"\x02\x09\x01\xe3\xa5\x4c\x7f\xe5\x0d\x84\xa0".as_ref(), Asn1DerError::Unsupported)));
 		(b32) => (make_test_vectors!(base, (b"\x02\x05\x01\xe3\xa5\x4c\x7f".as_ref(), Asn1DerError::Unsupported)));
 		(b16) => (make_test_vectors!(base, (b"\x02\x03\x01\xe3\xa5".as_ref(), Asn1DerError::Unsupported)));
@@ -220,6 +228,7 @@ fn integer_err() {
 		typed_err::<usize>(&make_test_vectors!(b16));
 	
 	// Test fixed size types
+	typed_err::<u128>(&make_test_vectors!(b128));
 	typed_err::<u64>(&make_test_vectors!(b64));
 	typed_err::<u32>(&make_test_vectors!(b32));
 	typed_err::<u16>(&make_test_vectors!(b16));

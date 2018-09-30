@@ -76,6 +76,7 @@ macro_rules! impl_from_der_object_num {
 	};
 }
 impl_from_der_object_num!(usize);
+impl_from_der_object_num!(u128);
 impl_from_der_object_num!(u64);
 impl_from_der_object_num!(u32);
 impl_from_der_object_num!(u16);
@@ -160,6 +161,7 @@ macro_rules! impl_into_der_object_num {
 	};
 }
 impl_into_der_object_num!(usize, sized: isize);
+impl_into_der_object_num!(u128, sized: i128);
 impl_into_der_object_num!(u64, sized: i64);
 impl_into_der_object_num!(u32, sized: i32);
 impl_into_der_object_num!(u16, sized: i16);
