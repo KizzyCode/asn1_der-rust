@@ -5,14 +5,14 @@
 
 asn1_der
 ========
-Welcome to my `asn1_der`-library 🎉
+Welcome to my `asn1_der`-crate 🎉
 
 
-What this library is:
----------------------
-This library helps you to DER-en-/-decode various types. It provides some traits to convert between encoded data,
-DER-objects and native types as well as some trait-implementations for common types. There is also a macro
-(`asn1_der_impl!`) that helps you to implement the traits for your structs.  
+What this crate is:
+-------------------
+This crate helps you to DER-(de-)serialize various types. It provides some traits to convert between encoded data,
+DER-objects and native types as well and implements them for some common types. If you build it with the
+`derive`-feature (enabled by default), you can use `#[derive(Asn1Der)]` to derive the traits for your named structs.
 
 The following types have built-in support:
  - `DerObject`: A generic DER-object-wrapper that can hold any object (`DerObject{ tag: u8, payload: Vec<u8> }`)
@@ -20,51 +20,61 @@ The following types have built-in support:
  - `bool`: The ASN.1-BOOLEAN-type
  - `Vec<u8>`: The ASN.1-OctetString-type
  - `String`: The ASN.1-UTF8String-type
- - `u64`: The ASN.1-INTEGER-type (within `0..u64::MAX`)
- - `Vec<DerObject>`: The ASN.1-SEQUENCE-type
- - `Vec<T>`: The ASN.1-SEQUENCE-type for sequences that contain only one type `T` (e.g. `Vec<String>` for a sequence
-   that contains only UTF8Strings)
- - Experimental: Each map-type with strings as key and any supported type as value. This is feature-gated with "map".
-   For implementation- and format-details (DER has no standardized support for maps), take a look at the module
-   documentation.
+ - `u128`: The ASN.1-INTEGER-type (within `[0, 2^128)`)
+ - `Vec<T>`: The ASN.1-SEQUENCE-type for any type `T` that implements `FromDerObject` and `IntoDerObject`
 
-The macro `asn1_der_impl!` helps you to "derive" the trait-implementations for your own structs; e.g.:
+With the `derive`-feature you can automatically derive `FromDerObject` and `IntoDerObject`:
 ```rust
+#[derive(Asn1Der)] // Now our struct supports all DER-conversion-traits
 struct Address {
 	street: String,
-	house_number: u64,
-	postal_code: u64,
+	house_number: u128,
+	postal_code: u128,
 	state: String,
 	country: String
 }
-asn1_der_impl!(Address{ street, house_number, postal_code, state, country }); // Now our struct supports all DER-conversion-traits
 
+#[derive(Asn1Der)]
 struct Customer {
 	name: String,
 	e_mail_address: String,
 	postal_address: Address
 }
-asn1_der_impl!(Customer{ name, e_mail_address, postal_address }); // Now this struct supports all DER-conversion-traits too! It's only necessary that all fields implement these traits
 
 // Serialization:
-let encoded = my_customer.into_der_encoded(); // This returns a vector containing the DER-encoded representation of this customer (a sequence containing the struct's fields)
+let mut serialized = vec![0u8; my_customer.serialized_len()];
+my_customer.serialize(serialized.iter_mut()).unwrap();
 
-// Parsing:
-let my_customer = Customer::from_der_encoded(encoded).unwrap(); // This returns our customer (if the data is valid)
+// Deserialization:
+let my_customer = Customer::deserialize(serialized.iter()).unwrap(); // This returns our customer (if the data is valid)
 ```
+
+
+Changes from 0.5.10 to 0.6.0
+----------------------------
+From 0.5.10 to 0.6.0 the library was nearly completely rewritten with a much more modular approach.
+
+ - The library is now separated into two modules:
+   - The `der` module which contains the generic DER implementation which is more stringent than the previous version
+     and uses iterators instead of slices to avoid unexpected panics
+   - The `types` module which defines the `FromDerObject` and `IntoDerObject` traits and already implements them for
+     some native types
+
+ - The tests are also separated into multiple files that map to the modules
+ - The `asn1_der_impl!`-macro was replaced with a procedural derive macro in the `asn1_der_derive`-subcrate
+ 
+If you are looking for the old version, you can find it
+[here](https://github.com/KizzyCode/asn1_der/tree/0.5.10-Legacy) – however please note that the old version is
+deprecated and may contain some serious issues.
 
 
 Dependencies
 ------------
-Only my [`etrace`-crate](https://github.com/KizzyCode/etrace)
+This depends on your selected features. If you use the `derive`-feature (enabled by default), the crate depends on the
+[quote](https://crates.io/crates/quote) and [syn](https://crates.io/crates/syn) crates which are used in the procedural
+macro implementation. 
 
-
-Build Documentation and Library:
---------------------------------
-To build and open the documentation, go into the project's root-directory and run `cargo doc --release --open`
-
-To build this library, change into the projects root-directory and run `cargo build --release`; you can find the build
-in `target/release`.
+If you don't use the `derive`-feature, this crate is dependency-less.
 
 
 Long-Term Goals:

@@ -1,19 +1,26 @@
 [package]
 name = "asn1_der"
-version = "0.5.10"
+version = "0.6.0"
 authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
 description = "This library provides a simple ASN.1-DER en-/decoder"
 license = "BSD-2-Clause OR MIT"
 repository = "https://github.com/KizzyCode/asn1_der"
 readme = "README.md"
 
-[features]
-default = []
-map = []
-
 [badges]
 travis-ci = { repository = "KizzyCode/asn1_der" }
 appveyor = { repository = "KizzyCode/asn1_der" }
 
-[dependencies]
-etrace = "1.1.1"
+
+[features]
+default = ["derive"]
+derive = ["asn1_der_derive"]
+
+
+[dependencies.asn1_der_derive]
+optional = true
+path = "./asn1_der_derive"
+
+
+[workspace]
+members = [".", "asn1_der_derive"]

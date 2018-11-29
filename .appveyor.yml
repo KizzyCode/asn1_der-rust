@@ -15,5 +15,5 @@ build: false
 test_script:
  - cargo test --verbose
  - cargo test --verbose --release
- - cargo test --verbose --features "map"
- - cargo test --verbose --release --features "map"
+ - cargo test --verbose --no-default-features
+ - cargo test --verbose --release --no-default-features
