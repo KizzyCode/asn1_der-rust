@@ -1,3 +1,6 @@
+# Ignore .DS_Store
+.DS_Store
+
 # Ignore project files
 .idea/
 asn1_der.iml
