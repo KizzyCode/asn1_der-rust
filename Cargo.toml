@@ -19,6 +19,7 @@ derive = ["asn1_der_derive"]
 
 [dependencies.asn1_der_derive]
 optional = true
+version = "0.1.0"
 path = "./asn1_der_derive"
 
 
