@@ -2,7 +2,7 @@
 name = "asn1_der"
 version = "0.6.0"
 authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
-description = "This library provides a simple ASN.1-DER en-/decoder"
+description = "This crate provides a simple ASN.1-DER en-/decoder"
 license = "BSD-2-Clause OR MIT"
 repository = "https://github.com/KizzyCode/asn1_der"
 readme = "README.md"
