@@ -1,15 +1,24 @@
 [package]
 name = "asn1_der_derive"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["KizzyCode <development@kizzycode.de>"]
 description = "This crate contains a procedural macro to implement `derive` for my `asn1_der` crate"
 license = "BSD-2-Clause OR MIT"
 repository = "https://github.com/KizzyCode/asn1_der"
 readme = "README.md"
 
+
 [dependencies]
 quote = "0.6.10"
 syn = "0.15.22"
+
+
+[profile.release]
+overflow-checks = true
+
+[profile.bench]
+overflow-checks = true
+
 
 [lib]
 proc-macro = true

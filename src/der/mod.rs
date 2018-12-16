@@ -55,7 +55,7 @@ impl DerObject {
 	/// `payload_len` payload bytes
 	pub fn compute_serialized_len(payload_len: usize) -> usize {
 		DerTag::compute_serialized_len()
-			.checked_add(DerLength::compute_serialized_len(payload_len)).unwrap()
-			.checked_add(DerValue::compute_serialized_len(payload_len)).unwrap()
+			+ DerLength::compute_serialized_len(payload_len)
+			+ DerValue::compute_serialized_len(payload_len)
 	}
 }

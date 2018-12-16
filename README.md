@@ -45,8 +45,8 @@ struct Customer {
 let mut serialized = vec![0u8; my_customer.serialized_len()];
 my_customer.serialize(serialized.iter_mut()).unwrap();
 
-// Deserialization:
-let my_customer = Customer::deserialize(serialized.iter()).unwrap(); // This returns our customer (if the data is valid)
+// Deserialization (this returns our customer if the data is valid):
+let my_customer = Customer::deserialize(serialized.iter()).unwrap();
 ```
 
 

@@ -1,6 +1,6 @@
 [package]
 name = "asn1_der"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
 description = "This crate provides a simple ASN.1-DER en-/decoder"
 license = "BSD-2-Clause OR MIT"
@@ -17,9 +17,16 @@ default = ["derive"]
 derive = ["asn1_der_derive"]
 
 
+[profile.release]
+overflow-checks = true
+
+[profile.bench]
+overflow-checks = true
+
+
 [dependencies.asn1_der_derive]
 optional = true
-version = "0.1.0"
+version = "0.1.1"
 path = "./asn1_der_derive"
 
 

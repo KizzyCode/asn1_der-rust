@@ -75,7 +75,7 @@ fn gen_impl<'a>(s: &Ident, fields: Vec<Ident>) -> TokenStream {
 			fn serialized_len(&self) -> usize {
 				// Compute the lengths of the sequences objects
 				let mut len = 0usize;
-				#( len = len.checked_add(self.#f2.serialized_len()).unwrap(); )*
+				#( len += self.#f2.serialized_len(); )*
 				
 				// Compute the serialized length
 				::asn1_der::DerObject::compute_serialized_len(len)
