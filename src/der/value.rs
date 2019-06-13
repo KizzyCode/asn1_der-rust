@@ -12,13 +12,10 @@ impl DerValue {
 	pub fn deserialize<'a>(mut source: impl Iterator<Item = &'a u8>, len: impl Into<usize>)
 		-> Result<Self, Asn1DerError>
 	{
-		// Create buffer
-		let len = len.into();
-		let mut data_buf = vec![0u8; len];
-		
-		// Copy data into buffer
-		for b in data_buf.iter_mut() {
-			*b = *source.next().ok_or(Asn1DerError::LengthMismatch)?;
+		// Create buffer and fill it with `len` bytes
+		let mut data_buf = Vec::new();
+		for _ in 0..len.into() {
+			data_buf.push(*source.next().ok_or(Asn1DerError::LengthMismatch)?);
 		}
 		Ok(data_buf.into())
 	}
