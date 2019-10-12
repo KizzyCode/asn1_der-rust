@@ -16,7 +16,7 @@ impl DerLength {
 	pub fn deserialize<'a>(mut source: impl Iterator<Item = &'a u8>) -> Result<Self, Asn1DerError> {
 		match *source.next().ok_or(Asn1DerError::LengthMismatch)? as usize {
 			// Decode simple length
-			b @ 0...127 => Ok(Self{ len: b }),
+			b @ 0..=127 => Ok(Self{ len: b }),
 			
 			// Decode complex length
 			b => match b & 0x0f {
@@ -40,7 +40,7 @@ impl DerLength {
 	pub fn serialized_len(&self) -> usize {
 		match self.len {
 			// Simple length
-			0...127 => 1,
+			0..=127 => 1,
 			// Complex length
 			len => 1 + USIZE_LEN - (len.leading_zeros() / 8) as usize
 		}
@@ -52,7 +52,7 @@ impl DerLength {
 		let serialized_len = self.serialized_len();
 		match self.len {
 			// Encode simple length
-			len @ 0...127 => *buf.next().ok_or(Asn1DerError::LengthMismatch)? = len as u8,
+			len @ 0..=127 => *buf.next().ok_or(Asn1DerError::LengthMismatch)? = len as u8,
 			
 			// Encode complex length
 			len => {
