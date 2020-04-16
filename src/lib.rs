@@ -130,5 +130,5 @@ mod der;
 pub use crate::{
 	der::DerObject,
 	data::{ Source, CountingSource, CopyingSource, Sink, SliceSink },
-	error::{ Asn1DerError, Asn1DerErrorVariant }
+	error::{ Asn1DerError, Asn1DerErrorVariant, ErrorChain }
 };
