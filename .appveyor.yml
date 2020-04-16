@@ -1,19 +1,23 @@
 environment:
   matrix:
-  - TARGET: x86_64-pc-windows-msvc
-  - TARGET: i686-pc-windows-msvc
+    - TARGET: x86_64-pc-windows-msvc
+    - TARGET: i686-pc-windows-msvc
 
 install:
- - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
- - rustup-init.exe -y --default-host %TARGET%
- - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
- - rustc -V
- - cargo -V
+  - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
+  - rustup-init.exe -y --default-host %TARGET%
+  - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+  - rustc -V
+  - cargo -V
 
 build: false
 
 test_script:
- - cargo test --verbose
- - cargo test --verbose --release
- - cargo test --verbose --no-default-features
- - cargo test --verbose --release --no-default-features
+  - cargo clean && cargo test --verbose --release --no-default-features
+  - cargo test --verbose --release --no-default-features --features="native_types"
+  - cargo test --verbose --release --no-default-features --features="no_std"
+  - cargo clean && cargo test --verbose --release --no-default-features --features="no_panic"
+  - cargo test --verbose --release --no-default-features --features="native_types,no_std"
+  - cargo clean && cargo test --verbose --release --no-default-features --features="no_std,no_panic"
+  - cargo clean && cargo test --verbose --release --no-default-features --features="no_panic,native_types"
+  - cargo clean && cargo test --verbose --release --no-default-features --features="native_types,no_std,no_panic"

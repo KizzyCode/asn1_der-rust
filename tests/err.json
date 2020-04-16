@@ -1,0 +1,151 @@
+{
+  "length": [
+    {
+      "bytes": [128],
+      "err": "InvalidData"
+    },
+    {
+      "bytes": [129,127],
+      "err": "InvalidData"
+    },
+    {
+      "bytes": [129],
+      "err": "InOutError"
+    },
+    {
+      "bytes": [132,1,0,0],
+      "err": "InOutError"
+    },
+    {
+      "bytes": [137,1,0,0,0,0,0,0,0,0],
+      "err": "Unsupported"
+    }
+  ],
+  "object": [
+    {
+      "bytes": [0,128],
+      "err": "InvalidData"
+    },
+    {
+      "bytes": [175,129,127],
+      "err": "InvalidData"
+    },
+    {
+      "bytes": [190,129],
+      "err": "InOutError"
+    },
+    {
+      "bytes": [215,132,1,0,0],
+      "err": "InOutError"
+    },
+    {
+      "bytes": [12,9,84,101,115,116,111,108,111,112],
+      "err": "InOutError"
+    },
+    {
+      "bytes": [119,137,1,0,0,0,0,0,0,0,0],
+      "err": "Unsupported"
+    },
+    {
+      "bytes": [157,247,157,157,157,157,157,157,157,157,157,157,157,157,157,67,157,1,0,0,0,157,157,157,157,157,157,157,157],
+      "err": "Unsupported"
+    },
+    {
+      "bytes": [5,136,112,0,0,0,0,0,0,0,7,12,5,4],
+      "err": "InOutError",
+      "err_32bit": "Unsupported"
+    }
+  ],
+  "typed": {
+    "bool": [
+      {
+        "bytes": [2,1,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [1,1,1],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [1,2,0,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [1,2,0],
+        "err": "InOutError"
+      }
+    ],
+    "integer": [
+      {
+        "bytes": [3,1,7],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [2,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [2,2,0,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [2,2,128],
+        "err": "InOutError"
+      }
+    ],
+    "null": [
+      {
+        "bytes": [6,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [5,1,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [5,2,0],
+        "err": "InOutError"
+      }
+    ],
+    "octet_string": [
+      {
+        "bytes": [3,1,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [4,1],
+        "err": "InOutError"
+      }
+    ],
+    "sequence": [
+      {
+        "bytes":[49,0],
+        "err":"InvalidData"
+      },
+      {
+        "bytes":[48,3,2,2,128],
+        "err":"InOutError"
+      },
+      {
+        "bytes":[48,5,4,2,55,228],
+        "err":"InOutError"
+      }
+    ],
+    "utf8_string": [
+      {
+        "bytes": [13,0],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [12,4,240,40,140,40],
+        "err": "InvalidData"
+      },
+      {
+        "bytes": [12,2,84],
+        "err": "InOutError"
+      }
+    ]
+  }
+}
+
+

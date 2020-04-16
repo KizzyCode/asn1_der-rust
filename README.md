@@ -1,82 +1,116 @@
-[![License](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Travis CI](https://travis-ci.org/KizzyCode/asn1_der.svg?branch=master)](https://travis-ci.org/KizzyCode/asn1_der)
-[![AppVeyor CI](https://ci.appveyor.com/api/projects/status/github/KizzyCode/asn1_der?svg=true)](https://ci.appveyor.com/project/KizzyCode/asn1-der)
+[![docs.rs](https://docs.rs/asn1_der/badge.svg)](https://docs.rs/asn1_der)
+[![License BSD-2-Clause](https://img.shields.io/badge/License-BSD--2--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![crates.io](https://img.shields.io/crates/v/asn1_der.svg)](https://crates.io/crates/asn1_der)
+[![Download numbers](https://img.shields.io/crates/d/asn1_der.svg)](https://crates.io/crates/asn1_der)
+[![Travis CI](https://travis-ci.org/KizzyCode/asn1_der-rust.svg?branch=master)](https://travis-ci.org/KizzyCode/asn1_der-rust)
+[![AppVeyor CI](https://ci.appveyor.com/api/projects/status/github/KizzyCode/asn1_der-rust?svg=true)](https://ci.appveyor.com/project/KizzyCode/asn1-der)
+[![dependency status](https://deps.rs/crate/asn1_der/0.7.0/status.svg)](https://deps.rs/crate/asn1_der/0.7.0)
 
-asn1_der
-========
-Welcome to my `asn1_der`-crate 🎉
+# asn1_der
+Welcome to `asn1_der` 🎉
+
+This crate provides a basic `no_std`-compatible, [no-panic](#no-panic) and [zero-copy](#zero-copy)
+DER implementation. It is designed to be reliable and reasonable fast without getting too large or
+sacrificing too much comfort. To achieve this, `asn1_der` makes extensive use of the
+[`no-panic`](https://crates.io/crates/no-panic) crate and offers slice-based object views to avoid
+allocations and unnecessary copies.
 
 
-What this crate is:
--------------------
-This crate helps you to DER-(de-)serialize various types. It provides some traits to convert between encoded data,
-DER-objects and native types as well and implements them for some common types. If you build it with the
-`derive`-feature (enabled by default), you can use `#[derive(Asn1Der)]` to derive the traits for your named structs.
-
-The following types have built-in support:
- - `DerObject`: A generic DER-object-wrapper that can hold any object (`DerObject{ tag: u8, payload: Vec<u8> }`)
- - `()`: The ASN.1-NULL-type
- - `bool`: The ASN.1-BOOLEAN-type
- - `Vec<u8>`: The ASN.1-OctetString-type
- - `String`: The ASN.1-UTF8String-type
- - `u128`: The ASN.1-INTEGER-type (within `[0, 2^128)`)
- - `Vec<T>`: The ASN.1-SEQUENCE-type for any type `T` that implements `FromDerObject` and `IntoDerObject`
-
-With the `derive`-feature you can automatically derive `FromDerObject` and `IntoDerObject`:
+## Example
 ```rust
-#[derive(Asn1Der)] // Now our struct supports all DER-conversion-traits
-struct Address {
-	street: String,
-	house_number: u128,
-	postal_code: u128,
-	state: String,
-	country: String
+use asn1_der::{ 
+	DerObject, 
+	typed::{ DerEncodable, DerDecodable }
+};
+
+fn main() {
+	const INT7: &'static[u8] = b"\x02\x01\x07";
+
+	// Decode an arbitrary DER object
+	let object = DerObject::decode(INT7).expect("Failed to decode object");
+
+	// Encode an arbitrary DER object
+	let mut encoded_object = Vec::new();
+	object.encode(&mut encoded_object).expect("Failed to encode object");
+
+	// Decode a `u8`
+	let number = u8::decode(INT7).expect("Failed to decode string");
+
+	// Encode a new `u8`
+	let mut encoded_number = Vec::new();
+	7u8.encode(&mut encoded_number).expect("Failed to encode string");
 }
-
-#[derive(Asn1Der)]
-struct Customer {
-	name: String,
-	e_mail_address: String,
-	postal_address: Address
-}
-
-// Serialization:
-let mut serialized = vec![0u8; my_customer.serialized_len()];
-my_customer.serialize(serialized.iter_mut()).unwrap();
-
-// Deserialization (this returns our customer if the data is valid):
-let my_customer = Customer::deserialize(serialized.iter()).unwrap();
 ```
 
-
-Changes from 0.5.10 to 0.6.0
-----------------------------
-From 0.5.10 to 0.6.0 the library was nearly completely rewritten with a much more modular approach.
-
- - The library is now separated into two modules:
-   - The `der` module which contains the generic DER implementation which is more stringent than the previous version
-     and uses iterators instead of slices to avoid unexpected panics
-   - The `types` module which defines the `FromDerObject` and `IntoDerObject` traits and already implements them for
-     some native types
-
- - The tests are also separated into multiple files that map to the modules
- - The `asn1_der_impl!`-macro was replaced with a procedural derive macro in the `asn1_der_derive`-subcrate
- 
-If you are looking for the old version, you can find it
-[here](https://github.com/KizzyCode/asn1_der/tree/0.5.10-Legacy) – however please note that the old version is
-deprecated and may contain some serious issues.
+For the (de-)serialization of structs and similar via `derive`, see 
+[`serde_asn1_der`](https://crates.io/crates/serde_asn1_der).
 
 
-Dependencies
-------------
-This depends on your selected features. If you use the `derive`-feature (enabled by default), the crate depends on the
-[quote](https://crates.io/crates/quote) and [syn](https://crates.io/crates/syn) crates which are used in the procedural
-macro implementation. 
+## Typed Implementations
+There are also some direct `DerDecodable`/`DerDecodable` implementations for native Rust type 
+equivalents:
+ - The ASN.1-`BOOLEAN` type as Rust-`bool`
+ - The ASN.1-`INTEGER` type as Rust-[`u8`, `u16`, `u32`, `u64`, `u128`, `usize`,
+   `i8`, `i16`, `i32`, `i64`, `i128`, `isize`]
+ - The ASN.1-`NULL` type as either `()` or `Option::None` (which allows the encoding of
+   optionals)
+ - The ASN.1-`OctetString` type as `Vec<u8>`
+ - The ASN.1-`SEQUENCE` type as `SequenceVec(Vec<T>)`
+ - The ASN.1-`UTF8String` type as `String`
 
-If you don't use the `derive`-feature, this crate is dependency-less.
+
+## No-Panic
+`asn1_der` is designed to be as panic-free as possible. To ensure that, nearly every function is
+attributed with `#[no_panic]`, which forces the compiler to prove that a function cannot panic in
+the given circumstances. However since `no_panic` can cause a lot of false-positives, it is
+currently only used by the CI-tests and disabled by default in normal builds. If you want to use
+this crate with `no_panic` enabled, you can do so by specifying the `no_panic` feature.
+
+### What No-Panic Does Not Cover
+It is important to know that `no_panic` is no silver bullet and does not help against certain kinds
+of errors that can also happen in this crate. This especially includes:
+ - Dynamic memory allocation errors: Since it is not possible to predict memory allocation errors,
+   everything that requires dynamic memory allocation is mutually exclusive to `no_panic` and will
+   be omitted if `no_panic` is enabled.
+   
+   This crate might allocate memory in the following circumstances:
+    - When writing to a dynamically allocating sink (e.g. `Vec<u8>`)
+    - When decoding a native owned type such as `Vec<u8>`, `SequenceVec(Vec<T>)` or `String`
+    - During error propagation
+   
+   If the crate is compiled with `no_std` enabled, it does performy any dynamic memory allocation 
+   directly by itself – however for foreign implementations passed to this crate may still allocate 
+   memory and fail (e.g. a custom `Sink` implementation).
+   
+ - Stack overflows: Since the stack size is not necessarily known during compile time, it is not
+   possible to predict stack overflow errors e.g. caused by recursion.
+ - Calls to `abort` or similar: Since calls to `abort` or similar do not trigger stack unwinding,
+   they can also no be detected by `no_panic`. __This also means that `no_panic` does not work for
+   builds that use `panic = "abort"` in their config.__
+   
+   This crate by itself does never call `abort` directly.
+
+Due to the limitations described above, the following functions are mutually exclusive to
+`no_panic` and disabled if `no_panic` is set:
+ - Error stacking/propagation (`propagate` is a no-op if compiled with `no_panic`)
+ - The sink implementation for a byte vector (`impl Sink for Vec<u8>`)
+ - The native OctetString type which uses `Vec<u8>` (`impl<'a> DerDecodable<'a> for Vec<u8>` and
+   `impl DerEncodable for Vec<u8>`)
+ - The native Sequence type wrapper `SequenceVec` since it is based upon `Vec`
+ - The native Utf8String type based upon `String` (`impl<'a> DerDecodable<'a> for String` and
+   `impl DerEncodable for String`)
 
 
-Long-Term Goals:
-----------------
- - Create a C-interface to make this library usable from C-FFI-compatible languages
+## Zero-Copy
+The crate is designed to be as much zero-copy as possible. In fact this means that the `DerObject`
+type and all typed views are zero-copy views over the underlying slice. Of course, zero-copy is not
+always reasonable: The `new`-constructors are not zero-copy because they construct a new object into
+a sink and the native type implementations are not zero-copy because they are either `Copy`-types
+(e.g. `u128`) or owned (e.g. `String`).
+
+
+## What happened to `asn1_der_derive`?
+Since version 0.7.0, the `asn1_der_derive`-crates has been deprecated in favor of
+[`serde_asn1_der`](https://crates.io/crates/serde_asn1_der). If you have a specific use-case why you
+cannot use `serde`, let me know; it's probably not that hard to revive `asn1_der_derive` 😊
