@@ -133,3 +133,5 @@ pub use crate::{
 	data::{ Source, CountingSource, CopyingSource, Sink, SliceSink },
 	error::{ Asn1DerError, Asn1DerErrorVariant, ErrorChain }
 };
+#[cfg(not(any(feature = "no_std", feature = "no_panic")))]
+	pub use crate::data::VecBacking;

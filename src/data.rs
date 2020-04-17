@@ -199,3 +199,20 @@ impl<'a> Into<&'a[u8]> for SliceSink<'a> {
 		}
 	}
 }
+
+
+/// A newtype wrapper around a `&'a mut Vec<u8>` that implements `Sink` and `Into<&'a [u8]>`
+#[cfg(not(any(feature = "no_std", feature = "no_panic")))]
+pub struct VecBacking<'a>(pub &'a mut Vec<u8>);
+#[cfg(not(any(feature = "no_std", feature = "no_panic")))]
+impl<'a> Sink for VecBacking<'a> {
+	fn write(&mut self, e: u8) -> Result<(), Asn1DerError> {
+		Ok(self.0.push(e))
+	}
+}
+#[cfg(not(any(feature = "no_std", feature = "no_panic")))]
+impl<'a> Into<&'a[u8]> for VecBacking<'a> {
+	fn into(self) -> &'a[u8] {
+		self.0.as_slice()
+	}
+}
