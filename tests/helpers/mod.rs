@@ -12,39 +12,39 @@ use asn1_der::{
 
 pub trait ResultExt<T, E> {
 	/// Returns the `Ok` variant or pretty prints the error and panics
-	fn assert(self, index: usize) -> T;
+	fn assert(self, name: &str) -> T;
 	/// Returns the `Ok` variant or pretty prints the error and panics
-	fn assert2(self, index: usize, index2: usize) -> T;
+	fn assert_index(self, name: &str, i: usize) -> T;
 	/// Ensures that the result is an `Err` of type `variant`
-	fn assert_err(self, variant: &str, index: usize);
+	fn assert_err(self, variant: &str, name: &str);
 }
 impl<T> ResultExt<T, Asn1DerError> for Result<T, Asn1DerError> {
-	fn assert(self, index: usize) -> T {
+	fn assert(self, name: &str) -> T {
 		self.unwrap_or_else(|e| {
-			eprintln!("Fatal error @test_vector:{}: {}", index, e);
+			eprintln!("Fatal error @\"{}\": {}", name, e);
 			panic!("Panicked due to fatal error");
 		})
 	}
-	fn assert2(self, index: usize, index2: usize) -> T {
+	fn assert_index(self, name: &str, i: usize) -> T {
 		self.unwrap_or_else(|e| {
-			eprintln!("Fatal error @test_vector:{}:{}: {}", index, index2, e);
+			eprintln!("Fatal error @\"{}\":{}: {}", name, i, e);
 			panic!("Panicked due to fatal error");
 		})
 	}
-	fn assert_err(self, variant: &str, index: usize) {
+	fn assert_err(self, variant: &str, name: &str) {
 		match self {
 			Err(Asn1DerError{ error: InOutError(_), .. }) if variant == "InOutError" => return,
 			Err(Asn1DerError{ error: InvalidData(_), .. }) if variant == "InvalidData" => return,
 			Err(Asn1DerError{ error: Unsupported(_), .. }) if variant == "Unsupported" => return,
 			Err(Asn1DerError{ error: Other(_), .. }) if variant == "Other" => return,
 			Ok(_) => {
-				eprintln!("Unexpected success @test_vector:{}; expected {}", index, variant);
+				eprintln!("Unexpected success @\"{}\"; expected {}", name, variant);
 				panic!("Panicked due to unexpected success")
 			},
 			Err(e) => {
 				eprintln!(
-					"Unexpected error kind @test_vector:{}; got {}\ninstead of {}",
-					index, e, variant
+					"Unexpected error kind @\"{}\"; got {}\ninstead of {}",
+					name, e, variant
 				);
 				panic!("Panicked due to invalid error kind");
 			}
@@ -56,6 +56,7 @@ impl<T> ResultExt<T, Asn1DerError> for Result<T, Asn1DerError> {
 pub mod test_ok {
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct Length {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub value: u64
 	}
@@ -63,6 +64,7 @@ pub mod test_ok {
 	
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct Object {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub tag: u8,
 		pub value: Vec<u8>
@@ -71,12 +73,14 @@ pub mod test_ok {
 	
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct TypedBool {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub value: Vec<u8>,
 		pub bool: bool
 	}
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct TypedInteger {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub value: Vec<u8>,
 		pub uint: Option<u128>,
@@ -84,21 +88,25 @@ pub mod test_ok {
 	}
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct TypedNull {
+		pub name: String,
 		pub bytes: Vec<u8>
 	}
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct TypedOctetString {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub value: Vec<u8>
 	}
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct TypedSequence {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub value: Vec<u8>,
 		pub sequence: Vec<Object>
 	}
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct TypedUtf8String {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub value: Vec<u8>,
 		pub utf8str: String
@@ -132,6 +140,7 @@ pub mod test_ok {
 pub mod test_err {
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct Length {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub err: String
 	}
@@ -139,6 +148,7 @@ pub mod test_err {
 	
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct Object {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		err: String,
 		err_32bit: Option<String>
@@ -157,6 +167,7 @@ pub mod test_err {
 	
 	#[derive(serde::Serialize, serde::Deserialize)]
 	pub struct TypedAny {
+		pub name: String,
 		pub bytes: Vec<u8>,
 		pub err: String
 	}

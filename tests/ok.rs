@@ -4,21 +4,23 @@ pub mod helpers;
 
 use crate::helpers::{ ResultExt, test_ok };
 use asn1_der::{ DerObject, Sink, der };
+#[cfg(not(any(feature = "no_std", feature = "no_panic")))]
+	use asn1_der::VecBacking;
 
 
 #[test]
 fn length() {
-	for (i, test) in test_ok::load().length.into_iter().enumerate() {
+	for test in test_ok::load().length {
 		if test.value <= usize::max_value() as u64 {
 			// Decode length
-			let len = der::length::decode(&mut test.bytes.iter()).assert(i);
-			assert_eq!(len, test.value as usize, "@test_vector:{}", i);
+			let len = der::length::decode(&mut test.bytes.iter()).assert(&test.name);
+			assert_eq!(len, test.value as usize, "@\"{}\"", &test.name);
 			
 			// Encode length
 			let (mut buf, mut buf_len) = ([0; 9], 0);
 			let mut sink = buf.iter_mut().counting_sink(&mut buf_len);
-			der::length::encode(len, &mut sink).assert(i);
-			assert_eq!(&buf[..buf_len], test.bytes.as_slice(), "@test_vector:{}", i);
+			der::length::encode(len, &mut sink).assert(&test.name);
+			assert_eq!(&buf[..buf_len], test.bytes.as_slice(), "@\"{}\"", &test.name);
 		}
 	}
 }
@@ -26,23 +28,24 @@ fn length() {
 
 #[test]
 fn object() {
-	for (i, test) in test_ok::load().object.into_iter().enumerate() {
+	for test in test_ok::load().object {
 		// Test-copy the object
 		#[cfg(not(any(feature = "no_std", feature = "no_panic")))]
 		{
 			let mut bytes = Vec::new();
-			der::read(&mut test.bytes.iter(), &mut bytes).assert(i);
-			assert_eq!(bytes, test.bytes, "@test_vector:{}", i);
+			DerObject::decode_from_source(&mut test.bytes.iter(), VecBacking(&mut bytes))
+				.assert(&test.name);
+			assert_eq!(bytes, test.bytes, "@\"{}\"", &test.name);
 		}
 		
 		// Decode the object
-		let object = DerObject::decode(test.bytes.as_slice()).assert(i);
-		assert_eq!(object.tag(), test.tag, "@test_vector:{}", i);
-		assert_eq!(object.value(), test.value.as_slice(), "@test_vector:{}", i);
+		let object = DerObject::decode(test.bytes.as_slice()).assert(&test.name);
+		assert_eq!(object.tag(), test.tag, "@\"{}\"", &test.name);
+		assert_eq!(object.value(), test.value.as_slice(), "@\"{}\"", &test.name);
 		
 		// Encode the object
 		let mut bytes = vec![0; test.bytes.len()];
-		object.encode(&mut bytes.iter_mut()).assert(i);
-		assert_eq!(bytes, test.bytes, "@test_vector:{}", i)
+		object.encode(&mut bytes.iter_mut()).assert(&test.name);
+		assert_eq!(bytes, test.bytes, "@\"{}\"", &test.name)
 	}
 }
