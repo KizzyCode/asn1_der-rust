@@ -19,28 +19,28 @@ allocations and unnecessary copies.
 
 ## Example
 ```rust
-use asn1_der::{ 
-	DerObject, 
-	typed::{ DerEncodable, DerDecodable }
+use asn1_der::{
+    DerObject,
+    typed::{ DerEncodable, DerDecodable }
 };
 
-fn main() {
-	const INT7: &'static[u8] = b"\x02\x01\x07";
+/// An ASN.1-DER encoded integer `7`
+const INT7: &'static[u8] = b"\x02\x01\x07";
 
-	// Decode an arbitrary DER object
-	let object = DerObject::decode(INT7).expect("Failed to decode object");
+// Decode an arbitrary DER object
+let object = DerObject::decode(INT7).expect("Failed to decode object");
 
-	// Encode an arbitrary DER object
-	let mut encoded_object = Vec::new();
-	object.encode(&mut encoded_object).expect("Failed to encode object");
+// Encode an arbitrary DER object
+let mut encoded_object = Vec::new();
+object.encode(&mut encoded_object).expect("Failed to encode object");
 
-	// Decode a `u8`
-	let number = u8::decode(INT7).expect("Failed to decode string");
+// Decode a `u8`
+let number = u8::decode(INT7).expect("Failed to decode string");
+assert_eq!(number, 7);
 
-	// Encode a new `u8`
-	let mut encoded_number = Vec::new();
-	7u8.encode(&mut encoded_number).expect("Failed to encode string");
-}
+// Encode a new `u8`
+let mut encoded_number = Vec::new();
+7u8.encode(&mut encoded_number).expect("Failed to encode string");
 ```
 
 For the (de-)serialization of structs and similar via `derive`, see 
@@ -75,7 +75,7 @@ of errors that can also happen in this crate. This especially includes:
    be omitted if `no_panic` is enabled.
    
    This crate might allocate memory in the following circumstances:
-    - When writing to a dynamically allocating sink (e.g. `Vec<u8>`)
+    - When writing to a dynamically allocating sink (e.g. `Vec<u8>`, `VecBacking(Vec<u8>)`)
     - When decoding a native owned type such as `Vec<u8>`, `SequenceVec(Vec<T>)` or `String`
     - During error propagation
    
@@ -95,6 +95,7 @@ Due to the limitations described above, the following functions are mutually exc
 `no_panic` and disabled if `no_panic` is set:
  - Error stacking/propagation (`propagate` is a no-op if compiled with `no_panic`)
  - The sink implementation for a byte vector (`impl Sink for Vec<u8>`)
+ - The `VecBacking(Vec<u8>)` type
  - The native OctetString type which uses `Vec<u8>` (`impl<'a> DerDecodable<'a> for Vec<u8>` and
    `impl DerEncodable for Vec<u8>`)
  - The native Sequence type wrapper `SequenceVec` since it is based upon `Vec`

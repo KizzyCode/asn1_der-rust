@@ -18,11 +18,10 @@
 //!
 //!
 //! ## Example
-//! ```
-//! # #[cfg(all(feature = "native_types", not(any(feature = "no_std", feature = "no_panic"))))] {
+//! ```rust
 //! use asn1_der::{
-//! 	DerObject,
-//! 	typed::{ DerEncodable, DerDecodable }
+//!     DerObject,
+//!     typed::{ DerEncodable, DerDecodable }
 //! };
 //!
 //! /// An ASN.1-DER encoded integer `7`
@@ -42,7 +41,6 @@
 //! // Encode a new `u8`
 //! let mut encoded_number = Vec::new();
 //! 7u8.encode(&mut encoded_number).expect("Failed to encode string");
-//! # }
 //! ```
 //!
 //! For the (de-)serialization of structs and similar via `derive`, see
@@ -53,8 +51,8 @@
 //! There are also some direct `DerDecodable`/`DerDecodable` implementations for native Rust type
 //! equivalents:
 //!  - The ASN.1-`BOOLEAN` type as Rust-`bool`
-//!  - The ASN.1-`INTEGER` type as Rust-[`u8`, `u16`, `u32`, `u64`, `u128`, `usize`, `i8`, `i16`,
-//!    `i32`, `i64`, `i128`, `isize`]
+//!  - The ASN.1-`INTEGER` type as Rust-[`u8`, `u16`, `u32`, `u64`, `u128`, `usize`,
+//!    `i8`, `i16`, `i32`, `i64`, `i128`, `isize`]
 //!  - The ASN.1-`NULL` type as either `()` or `Option::None` (which allows the encoding of
 //!    optionals)
 //!  - The ASN.1-`OctetString` type as `Vec<u8>`
@@ -77,7 +75,7 @@
 //!    `no_panic` and will be omitted if `no_panic` is enabled.
 //!
 //!    This crate might allocate memory in the following circumstances:
-//!     - When writing to a dynamically allocating sink (e.g. `Vec<u8>`)
+//!     - When writing to a dynamically allocating sink (e.g. `Vec<u8>`, `VecBacking(Vec<u8>)`)
 //!     - When decoding a native owned type such as `Vec<u8>`, `SequenceVec(Vec<T>)` or `String`
 //!     - During error propagation
 //!
@@ -93,11 +91,22 @@
 //!
 //!    This crate by itself does never call `abort` directly.
 //!
+//! Due to the limitations described above, the following functions are mutually exclusive to
+//! `no_panic` and disabled if `no_panic` is set:
+//!  - Error stacking/propagation (`propagate` is a no-op if compiled with `no_panic`)
+//!  - The sink implementation for a byte vector (`impl Sink for Vec<u8>`)
+//!  - The `VecBacking(Vec<u8>)` type
+//!  - The native OctetString type which uses `Vec<u8>` (`impl<'a> DerDecodable<'a> for Vec<u8>` and
+//!    `impl DerEncodable for Vec<u8>`)
+//!  - The native Sequence type wrapper `SequenceVec` since it is based upon `Vec`
+//!  - The native Utf8String type based upon `String` (`impl<'a> DerDecodable<'a> for String` and
+//!    `impl DerEncodable for String`)
+//!
 //!
 //! ## Zero-Copy
 //! The crate is designed to be as much zero-copy as possible. In fact this means that the
 //! `DerObject` type and all typed views are zero-copy views over the underlying slice. Of course,
-//! zero-copy is not always reasonable: The `new`-constructors are not zero-copy because they
+//! ero-copy is not always reasonable: The `new`-constructors are not zero-copy because they
 //! construct a new object into a sink and the native type implementations are not zero-copy because
 //! they are either `Copy`-types (e.g. `u128`) or owned (e.g. `String`).
 //!
@@ -122,7 +131,8 @@
 #[doc(hidden)]
 pub mod error;
 mod data;
-mod der;
+#[doc(hidden)]
+pub mod der;
 #[cfg(feature = "native_types")]
 	pub mod typed;
 
