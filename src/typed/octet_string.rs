@@ -26,7 +26,7 @@ impl<'a> OctetString<'a> {
 	
 	/// Writes an octet string `value` as DER-object to `sink`
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-	fn write<S: Sink>(value: &[u8], sink: &mut S) -> Result<(), Asn1DerError> {
+	pub fn write<S: Sink>(value: &[u8], sink: &mut S) -> Result<(), Asn1DerError> {
 		DerObject::write(Self::TAG, value.len(), &mut value.iter(), sink)
 			.propagate(e!("Failed to write octet string"))
 	}

@@ -67,7 +67,9 @@ impl<'a> Integer<'a> {
 	}
 	/// Writes an integer `value` as DER-object to `sink`
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)] #[inline(always)]
-	fn write<S: Sink>(value: &[u8], is_negative: bool, sink: &mut S) -> Result<(), Asn1DerError> {
+	pub fn write<S: Sink>(value: &[u8], is_negative: bool, sink: &mut S)
+		-> Result<(), Asn1DerError>
+	{
 		// Determine the amount leading zero bytes to skip
 		let to_skip = value.iter().take_while(|b| **b == 0).count();
 		let len = value.iter().skip(to_skip).count();

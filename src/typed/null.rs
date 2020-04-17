@@ -21,7 +21,7 @@ impl<'a> Null<'a> {
 	
 	/// Writes a boolean `value` as DER-object to `sink`
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-	fn write<S: Sink>(sink: &mut S) -> Result<(), Asn1DerError> {
+	pub fn write<S: Sink>(sink: &mut S) -> Result<(), Asn1DerError> {
 		DerObject::write(Self::TAG, 0, &mut b"".iter(), sink)
 			.propagate(e!("Failed to write null object"))
 	}

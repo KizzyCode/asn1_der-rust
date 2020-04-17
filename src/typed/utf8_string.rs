@@ -31,7 +31,7 @@ impl<'a> Utf8String<'a> {
 	
 	/// Writes an UTF-8 string `value` as DER-object to `sink`
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-	fn write<S: Sink>(value: &str, sink: &mut S) -> Result<(), Asn1DerError> {
+	pub fn write<S: Sink>(value: &str, sink: &mut S) -> Result<(), Asn1DerError> {
 		DerObject::write(Self::TAG, value.len(), &mut value.as_bytes().iter(), sink)
 			.propagate(e!("Failed to write UTF-8 string"))
 	}

@@ -31,7 +31,7 @@ impl<'a> Boolean<'a> {
 	
 	/// Writes a boolean `value` as DER-object to `sink`
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-	fn write<S: Sink>(value: bool, sink: &mut S) -> Result<(), Asn1DerError> {
+	pub fn write<S: Sink>(value: bool, sink: &mut S) -> Result<(), Asn1DerError> {
 		let value = match value {
 			true => b"\xff".as_ref(),
 			false => b"\x00".as_ref()

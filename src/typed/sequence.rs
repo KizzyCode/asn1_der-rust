@@ -100,7 +100,7 @@ impl<'a> Sequence<'a> {
 	
 	/// Writes a sequence consisting of `objs` as DER-object to `sink`
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-	fn write<S: Sink, T: DerEncodable>(objs: &[T], sink: &mut S) -> Result<(), Asn1DerError> {
+	pub fn write<S: Sink, T: DerEncodable>(objs: &[T], sink: &mut S) -> Result<(), Asn1DerError> {
 		// Compute the total length
 		let mut ctr = CountingSink(0);
 		objs.iter().try_for_each(|o| o.encode(&mut ctr).propagate(e!("Failed to size subobject")))?;
