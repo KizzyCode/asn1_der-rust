@@ -119,7 +119,8 @@
 
 
 #[macro_use]
-mod error;
+#[doc(hidden)]
+pub mod error;
 mod data;
 mod der;
 #[cfg(feature = "native_types")]
