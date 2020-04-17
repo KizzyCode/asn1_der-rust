@@ -89,6 +89,17 @@
         "err": "InvalidData"
       },
       {
+        "name": "Invalid integer (excessive representation of 127)",
+        "bytes": [2,2,0,127],
+        "err": "InvalidData"
+      },
+      {
+        "name": "Invalid integer (excessive representation of -1)",
+        "bytes": [2,2,255,255],
+        "err": "InvalidData"
+      },
+      {
+        "name": "Truncated integer (expected 2, got 1)",
         "bytes": [2,2,128],
         "err": "InOutError"
       }

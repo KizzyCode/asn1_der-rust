@@ -105,7 +105,7 @@ impl<'a> DerDecodable<'a> for Integer<'a> {
 		match object.value() {
 			_ if object.tag() != Self::TAG => Err(einval!("DER object is not an integer"))?,
 			value if value.is_empty() => Err(einval!("DER object is not a valid integer"))?,
-			value if value.len() >= 2 && value[0] == b'\x00' && value[1] == b'\x00' =>
+			value if value.len() >= 2 && value[0] == b'\x00' && value[1] & 0b1000_0000 == 0 =>
 				Err(einval!("DER object is not a valid integer")),
 			value if value.len() >= 2 && value[0] == b'\xff' && value[1] & 0b1000_0000 != 0 =>
 				Err(einval!("DER object is not a valid integer")),
