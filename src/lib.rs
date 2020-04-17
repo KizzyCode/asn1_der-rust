@@ -19,6 +19,7 @@
 //!
 //! ## Example
 //! ```rust
+//! # #[cfg(all(feature = "native_types", not(any(feature = "no_std", feature = "no_panic"))))] {
 //! use asn1_der::{
 //!     DerObject,
 //!     typed::{ DerEncodable, DerDecodable }
@@ -41,6 +42,7 @@
 //! // Encode a new `u8`
 //! let mut encoded_number = Vec::new();
 //! 7u8.encode(&mut encoded_number).expect("Failed to encode string");
+//! # }
 //! ```
 //!
 //! For the (de-)serialization of structs and similar via `derive`, see
