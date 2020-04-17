@@ -3,6 +3,8 @@ name = "asn1_der"
 version = "0.7.0"
 edition = "2018"
 authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
+keywords = ["serde", "asn1", "asn1-der", "serialize", "deserialize", "no_panic"]
+categories = ["encoding"]
 description = "This crate provides an ASN.1-DER en-/decoder"
 license = "BSD-2-Clause OR MIT"
 repository = "https://github.com/KizzyCode/asn1_der-rust"
@@ -11,8 +13,8 @@ exclude = [".*", "test_unix.sh"]
 
 
 [badges]
-travis-ci = { repository = "KizzyCode/asn1_der" }
-appveyor = { repository = "KizzyCode/asn1_der" }
+travis-ci = { repository = "KizzyCode/asn1_der-rust" }
+appveyor = { repository = "KizzyCode/asn1_der-rust" }
 
 
 [features]
@@ -34,7 +36,6 @@ serde_json = "^1.0"
 [profile.release]
 lto = "thin"
 overflow-checks = true
-
 
 [profile.bench]
 overflow-checks = true
