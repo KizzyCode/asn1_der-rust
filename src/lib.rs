@@ -53,8 +53,7 @@
 //! There are also some direct `DerDecodable`/`DerDecodable` implementations for native Rust type
 //! equivalents:
 //!  - The ASN.1-`BOOLEAN` type as Rust-`bool`
-//!  - The ASN.1-`INTEGER` type as Rust-[`u8`, `u16`, `u32`, `u64`, `u128`, `usize`,
-//!    `i8`, `i16`, `i32`, `i64`, `i128`, `isize`]
+//!  - The ASN.1-`INTEGER` type as Rust-[`u8`, `u16`, `u32`, `u64`, `u128`, `usize`]
 //!  - The ASN.1-`NULL` type as either `()` or `Option::None` (which allows the encoding of
 //!    optionals)
 //!  - The ASN.1-`OctetString` type as `Vec<u8>`

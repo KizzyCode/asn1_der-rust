@@ -24,7 +24,7 @@ fn integer() {
 			($num:ty) => (<$num>::decode(&test.bytes).assert_err(&test.err, &test.name));
 			($( $num:ty ),+) => ($( native!($num); )+);
 		}
-		native!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+		native!(u8, u16, u32, u64, u128, usize);
 	}
 }
 
