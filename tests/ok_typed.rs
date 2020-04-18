@@ -74,10 +74,8 @@ fn integer() {
 				}
 			};
 			(unsigned: $( $num:ty ),+) => ($( native!($num, uint, |_| false); )+);
-			(signed: $( $num:ty ),+) => ($( native!($num, int, |n: $num| n.is_negative()); )+);
 		}
 		native!(unsigned: u8, u16, u32, u64, u128, usize);
-		native!(signed: i8, i16, i32, i64, i128, isize);
 	}
 }
 

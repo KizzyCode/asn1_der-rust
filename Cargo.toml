@@ -1,6 +1,6 @@
 [package]
 name = "asn1_der"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2018"
 authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
 keywords = ["asn1", "asn1-der", "serialize", "deserialize", "no_panic"]

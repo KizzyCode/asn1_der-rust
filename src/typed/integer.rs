@@ -124,30 +124,6 @@ impl<'a> DerEncodable for Integer<'a> {
 
 /// Implements `DerCodable`
 macro_rules! impl_dercodable {
-	(signed: $num:ty) => {
-		impl<'a> DerDecodable<'a> for $num {
-			#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-			fn load(object: DerObject<'a>) -> Result<Self, Asn1DerError> {
-				// Load integer
-				let integer = Integer::load(object).propagate(e!("Failed to load integer"))?;
-				let buf = integer.copy_numbytes([0; mem::size_of::<Self>()])
-					.propagate(e!("The numeric value is too large"))?;
-				
-				// Validate the integer
-				match Self::from_be_bytes(buf) {
-					num if num.is_negative() && !integer.is_negative() =>
-						Err(eunsupported!("The numeric value is too large")),
-					num => Ok(num)
-				}
-			}
-		}
-		impl DerEncodable for $num {
-			#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-			fn encode<S: Sink>(&self, sink: &mut S) -> Result<(), Asn1DerError> {
-				Integer::write(&self.to_be_bytes(), self.is_negative(), sink)
-			}
-		}
-	};
 	(unsigned: $num:ty) => {
 		impl<'a> DerDecodable<'a> for $num {
 			#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
@@ -172,8 +148,6 @@ macro_rules! impl_dercodable {
 			}
 		}
 	};
-	(signed: $($num:ty),+) => ($( impl_dercodable!(signed: $num); )+);
 	(unsigned: $($num:ty),+) => ($( impl_dercodable!(unsigned: $num); )+);
 }
 impl_dercodable!(unsigned: u8, u16, u32, u64, u128, usize);
-impl_dercodable!(signed: i8, i16, i32, i64, i128, isize);
