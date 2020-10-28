@@ -42,7 +42,7 @@ impl<'a> Utf8String<'a> {
 	/// `no_panic` because either way we have to assume that the code in the standard library is
 	/// correct – see also
 	/// [Is there a way to use potentially panicking code in a #[no_panic] function #16](https://github.com/dtolnay/no-panic/issues/16)_
-	#[inline(never)]
+	#[inline(never)] #[allow(improper_ctypes_definitions)]
 	extern "C" fn is_utf8(slice: &[u8]) -> bool {
 		str::from_utf8(slice).is_ok()
 	}

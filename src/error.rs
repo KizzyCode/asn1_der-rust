@@ -91,7 +91,7 @@ impl Asn1DerErrorVariant {
 	/// `no_panic` because either way we have to assume that the code in the standard library is
 	/// correct – see also
 	/// [Is there a way to use potentially panicking code in a #[no_panic] function #16](https://github.com/dtolnay/no-panic/issues/16)_
-	#[inline(never)]
+	#[inline(never)] #[allow(improper_ctypes_definitions)]
 	extern "C" fn write(f: &mut Formatter, kind: &str, desc: &str) -> fmt::Result {
 		write!(f, "{}: {}", kind, desc)
 	}
@@ -148,7 +148,7 @@ impl Asn1DerError {
 	/// `no_panic` because either way we have to assume that the code in the standard library is
 	/// correct – see also
 	/// [Is there a way to use potentially panicking code in a #[no_panic] function #16](https://github.com/dtolnay/no-panic/issues/16)_
-	#[inline(never)]
+	#[inline(never)] #[allow(improper_ctypes_definitions)]
 	extern "C" fn write(f: &mut Formatter, variant: &Asn1DerErrorVariant,
 		source: &Option<ErrorSource>) -> fmt::Result
 	{
