@@ -117,9 +117,6 @@
 //! [`serde_asn1_der`](https://crates.io/crates/serde_asn1_der). If you have a specific use-case why
 //! you cannot use `serde`, let me know; it's probably not that hard to revive `asn1_der_derive` 😊
 
-// Forbid warnings during tests
-#![cfg_attr(test, forbid(warnings))]
-
 // Handle no_std if set
 #![cfg_attr(feature = "no_std", no_std)]
 #[cfg(not(feature = "no_std"))]
