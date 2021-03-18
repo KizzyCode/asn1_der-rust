@@ -188,7 +188,6 @@ impl<'a> DerObject<'a> {
 	
 	
 	/// Writes a `tag`-`len`-`value` combination as DER-TLV structure into `sink`
-	#[doc(hidden)]
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
 	pub fn write<A: Source, B: Sink>(tag: u8, len: usize, value: &mut A, sink: &mut B)
 		-> Result<(), Asn1DerError>
