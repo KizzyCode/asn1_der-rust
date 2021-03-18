@@ -65,6 +65,13 @@ impl<'a> DerDecodable<'a> for DerObject<'a> {
 pub trait DerEncodable: Sized {
 	/// Encodes `self` into `sink`
 	fn encode<S: Sink>(&self, sink: &mut S) -> Result<(), Asn1DerError>;
+
+	/// Creates an DER object from an encodable type
+	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
+	fn der_object<'a, S: Sink + Into<&'a[u8]>>(&self, mut sink: S) -> Result<DerObject<'a>, Asn1DerError> {
+		self.encode(&mut sink).propagate(e!("Failed to encode object"))?;
+		DerObject::decode(sink.into()).propagate("Failed to load constructed object")
+	}
 }
 impl<'a> DerEncodable for DerObject<'a> {
 	#[cfg_attr(feature = "no_panic", no_panic::no_panic)]
