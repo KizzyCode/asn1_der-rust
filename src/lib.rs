@@ -35,12 +35,12 @@
 //! object.encode(&mut encoded_object).expect("Failed to encode object");
 //!
 //! // Decode a `u8`
-//! let number = u8::decode(INT7).expect("Failed to decode string");
+//! let number = u8::decode(INT7).expect("Failed to decode number");
 //! assert_eq!(number, 7);
 //!
 //! // Encode a new `u8`
 //! let mut encoded_number = Vec::new();
-//! 7u8.encode(&mut encoded_number).expect("Failed to encode string");
+//! 7u8.encode(&mut encoded_number).expect("Failed to encode number");
 //! # }
 //! ```
 //!
