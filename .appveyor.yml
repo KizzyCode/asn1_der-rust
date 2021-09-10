@@ -14,14 +14,14 @@ platform:
 
 # The Rust feature matrix
 configuration:
-  #- --features=
-  #- --features=native_types
-  # - --features=no_std
+  - --features=
+  - --features=native_types
+  - --features=no_std
   - --features=no_panic
-  #- --features=native_types,no_std
-  #- --features=no_std,no_panic
-  #- --features=no_panic,native_types
-  #- --features=native_types,no_std,no_panic
+  - --features=native_types,no_std
+  - --features=no_std,no_panic
+  - --features=no_panic,native_types
+  - --features=native_types,no_std,no_panic
 
 
 # General environment vars
