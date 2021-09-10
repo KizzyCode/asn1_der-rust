@@ -46,14 +46,17 @@ for:
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     install:
-      # Disable no_panic builds on windows
-      - ps: if ($env:CONFIGURATION -match ".*no_panic.*" ) {Exit-AppveyorBuild}
-      - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
-      - rustup-init.exe -y --default-host "%PLATFORM%"
-      - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+      # Early-abort no_panic builds on windows
+      - ps: |
+          if ($env:CONFIGURATION -match ".*no_panic.*" ) {
+              Exit-AppveyorBuild
+          }
+      - cmd: appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
+      - cmd: rustup-init.exe -y --default-host "%PLATFORM%"
+      - cmd: set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
     test_script:
-      - cargo test --verbose --no-default-features %CONFIGURATION%
-      - cargo test --verbose --release --no-default-features %CONFIGURATION%
+      - cmd: cargo test --verbose --no-default-features %CONFIGURATION%
+      - cmd: cargo test --verbose --release --no-default-features %CONFIGURATION%
   
   # Linux specific build settings
   - matrix:
@@ -62,12 +65,16 @@ for:
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
     install:
-      - curl https://sh.rustup.rs -sSf -o rustup-init.sh
-      - sh rustup-init.sh -y --default-host "$PLATFORM"
-      - source $HOME/.cargo/env
+      - bash: curl https://sh.rustup.rs -sSf -o rustup-init.sh
+      - bash: sh rustup-init.sh -y --default-host "$PLATFORM"
+      - bash: source $HOME/.cargo/env
     test_script:
-      - cargo test --verbose --no-default-features $CONFIGURATION
-      - cargo test --verbose --release --no-default-features $CONFIGURATION
+      # Skip no_panic tests for debug builds
+      - bash: |
+          if ! echo "$CONFIGURATION" | grep -q ".*no_panic.*"; then
+              cargo test --verbose --no-default-features $CONFIGURATION
+          fi
+      - bash: cargo test --verbose --release --no-default-features $CONFIGURATION
   
   # macOS specific build settings
   - matrix:
@@ -76,9 +83,13 @@ for:
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
     install:
-      - curl https://sh.rustup.rs -sSf -o rustup-init.sh
-      - sh rustup-init.sh -y --default-host "$PLATFORM"
-      - source $HOME/.cargo/env
+      - bash: curl https://sh.rustup.rs -sSf -o rustup-init.sh
+      - bash: sh rustup-init.sh -y --default-host "$PLATFORM"
+      - bash: source $HOME/.cargo/env
     test_script:
-      - cargo test --verbose --no-default-features $CONFIGURATION
-      - cargo test --verbose --release --no-default-features $CONFIGURATION
+      # Skip no_panic tests for debug builds
+      - bash: |
+          if ! echo "$CONFIGURATION" | grep -q ".*no_panic.*"; then
+              cargo test --verbose --no-default-features $CONFIGURATION
+          fi
+      - bash: cargo test --verbose --release --no-default-features $CONFIGURATION
