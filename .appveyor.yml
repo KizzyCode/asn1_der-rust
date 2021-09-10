@@ -16,9 +16,8 @@ platform:
 configuration:
   #- --features=
   #- --features=native_types
-  # FIXME: Swap lines
+  # - --features=no_std
   - --features=no_panic
-  - --features=no_std
   #- --features=native_types,no_std
   #- --features=no_std,no_panic
   #- --features=no_panic,native_types
@@ -39,9 +38,6 @@ matrix:
 for:
   # Windows specific build settings
   - matrix:
-      except:
-        # Disable no_panic builds on windows
-        - configuration: /.*no_panic.*/
       only:
         - platform: x86_64-pc-windows-msvc
         - platform: i686-pc-windows-msvc
@@ -50,6 +46,8 @@ for:
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     install:
+      # Disable no_panic builds on windows
+      - ps: if ($env:CONFIGURATION -match ".*no_panic.*" ) {Exit-AppveyorBuild}
       - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
       - rustup-init.exe -y --default-host "%PLATFORM%"
       - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
