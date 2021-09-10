@@ -16,8 +16,9 @@ platform:
 configuration:
   #- --features=
   #- --features=native_types
-  #- --features=no_std
+  # FIXME: Swap lines
   - --features=no_panic
+  - --features=no_std
   #- --features=native_types,no_std
   #- --features=no_std,no_panic
   #- --features=no_panic,native_types
@@ -38,14 +39,14 @@ matrix:
 for:
   # Windows specific build settings
   - matrix:
+      except:
+        # Disable no_panic builds on windows
+        - configuration: /.*no_panic.*/
       only:
         - platform: x86_64-pc-windows-msvc
         - platform: i686-pc-windows-msvc
         - platform: x86_64-pc-windows-gnu
         - platform: i686-pc-windows-gnu
-      except:
-        # Disable no_panic builds on windows
-        - configuration: /.*no_panic.*/
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     install:
