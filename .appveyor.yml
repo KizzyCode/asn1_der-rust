@@ -43,6 +43,8 @@ for:
         - platform: i686-pc-windows-msvc
         - platform: x86_64-pc-windows-gnu
         - platform: i686-pc-windows-gnu
+        # Disable no_panic builds on windows
+        - configuration: /^(?!.*no_panic).*$/
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
     install:
