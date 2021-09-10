@@ -65,16 +65,16 @@ for:
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
     install:
-      - bash: curl https://sh.rustup.rs -sSf -o rustup-init.sh
-      - bash: sh rustup-init.sh -y --default-host "$PLATFORM"
-      - bash: source $HOME/.cargo/env
+      - sh: curl https://sh.rustup.rs -sSf -o rustup-init.sh
+      - sh: sh rustup-init.sh -y --default-host "$PLATFORM"
+      - sh: source $HOME/.cargo/env
     test_script:
       # Skip no_panic tests for debug builds
-      - bash: |
+      - sh: |
           if ! echo "$CONFIGURATION" | grep -q ".*no_panic.*"; then
               cargo test --verbose --no-default-features $CONFIGURATION
           fi
-      - bash: cargo test --verbose --release --no-default-features $CONFIGURATION
+      - sh: cargo test --verbose --release --no-default-features $CONFIGURATION
   
   # macOS specific build settings
   - matrix:
@@ -83,13 +83,13 @@ for:
     environment:
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
     install:
-      - bash: curl https://sh.rustup.rs -sSf -o rustup-init.sh
-      - bash: sh rustup-init.sh -y --default-host "$PLATFORM"
-      - bash: source $HOME/.cargo/env
+      - sh: curl https://sh.rustup.rs -sSf -o rustup-init.sh
+      - sh: sh rustup-init.sh -y --default-host "$PLATFORM"
+      - sh: source $HOME/.cargo/env
     test_script:
       # Skip no_panic tests for debug builds
-      - bash: |
+      - sh: |
           if ! echo "$CONFIGURATION" | grep -q ".*no_panic.*"; then
               cargo test --verbose --no-default-features $CONFIGURATION
           fi
-      - bash: cargo test --verbose --release --no-default-features $CONFIGURATION
+      - sh: cargo test --verbose --release --no-default-features $CONFIGURATION
