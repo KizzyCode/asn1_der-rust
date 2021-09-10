@@ -13,7 +13,6 @@ exclude = [".*", "test_unix.sh"]
 
 
 [badges]
-travis-ci = { repository = "KizzyCode/asn1_der-rust" }
 appveyor = { repository = "KizzyCode/asn1_der-rust" }
 
 
