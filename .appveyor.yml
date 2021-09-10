@@ -1,23 +1,82 @@
-environment:
-  matrix:
-    - TARGET: x86_64-pc-windows-msvc
-    - TARGET: i686-pc-windows-msvc
-
-install:
-  - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
-  - rustup-init.exe -y --default-host %TARGET%
-  - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
-  - rustc -V
-  - cargo -V
-
+# Since we use custom test script, disable the default build action
 build: false
 
-test_script:
-  - cargo clean && cargo test --verbose --release --no-default-features
-  - cargo test --verbose --release --no-default-features --features="native_types"
-  - cargo test --verbose --release --no-default-features --features="no_std"
-# - cargo clean && cargo test --verbose --release --no-default-features --features="no_panic"
-  - cargo test --verbose --release --no-default-features --features="native_types,no_std"
-# - cargo clean && cargo test --verbose --release --no-default-features --features="no_std,no_panic"
-# - cargo clean && cargo test --verbose --release --no-default-features --features="no_panic,native_types"
-# - cargo clean && cargo test --verbose --release --no-default-features --features="native_types,no_std,no_panic"
+
+# The Rust target platforms
+platform:
+  - x86_64-pc-windows-msvc
+  - i686-pc-windows-msvc
+  - x86_64-pc-windows-gnu
+  - i686-pc-windows-gnu
+  - x86_64-unknown-linux-gnu
+  - x86_64-apple-darwin
+
+
+# The Rust feature matrix
+configuration:
+  #- --features=
+  #- --features=native_types
+  #- --features=no_std
+  - --features=no_panic
+  #- --features=native_types,no_std
+  #- --features=no_std,no_panic
+  #- --features=no_panic,native_types
+  #- --features=native_types,no_std,no_panic
+
+
+# General environment vars
+environment:
+  # Promote warnings to errors
+  RUSTFLAGS: -D warnings
+
+
+# Fail fast if one job in the matrix fails
+matrix:
+  fast_finish: true
+
+
+for:
+  # Windows specific build settings
+  - matrix:
+      only:
+        - platform: x86_64-pc-windows-msvc
+        - platform: i686-pc-windows-msvc
+        - platform: x86_64-pc-windows-gnu
+        - platform: i686-pc-windows-gnu
+    environment:
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    install:
+      - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
+      - rustup-init.exe -y --default-host "%PLATFORM%"
+      - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
+    test_script:
+      - cargo test --verbose --no-default-features %CONFIGURATION%
+      - cargo test --verbose --release --no-default-features %CONFIGURATION%
+  
+  # Linux specific build settings
+  - matrix:
+      only:
+        - platform: x86_64-unknown-linux-gnu
+    environment:
+      APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
+    install:
+      - curl https://sh.rustup.rs -sSf -o rustup-init.sh
+      - sh rustup-init.sh -y --default-host "$PLATFORM"
+      - source $HOME/.cargo/env
+    test_script:
+      - cargo test --verbose --no-default-features $CONFIGURATION
+      - cargo test --verbose --release --no-default-features $CONFIGURATION
+  
+  # macOS specific build settings
+  - matrix:
+      only:
+        - platform: x86_64-apple-darwin
+    environment:
+      APPVEYOR_BUILD_WORKER_IMAGE: macOS
+    install:
+      - curl https://sh.rustup.rs -sSf -o rustup-init.sh
+      - sh rustup-init.sh -y --default-host "$PLATFORM"
+      - source $HOME/.cargo/env
+    test_script:
+      - cargo test --verbose --no-default-features $CONFIGURATION
+      - cargo test --verbose --release --no-default-features $CONFIGURATION
