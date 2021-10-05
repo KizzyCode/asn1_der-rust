@@ -4,7 +4,7 @@
 [![crates.io](https://img.shields.io/crates/v/asn1_der.svg)](https://crates.io/crates/asn1_der)
 [![Download numbers](https://img.shields.io/crates/d/asn1_der.svg)](https://crates.io/crates/asn1_der)
 [![AppVeyor CI](https://ci.appveyor.com/api/projects/status/github/KizzyCode/asn1_der-rust?svg=true)](https://ci.appveyor.com/project/KizzyCode/asn1-der-rust)
-[![dependency status](https://deps.rs/crate/asn1_der/0.7.4/status.svg)](https://deps.rs/crate/asn1_der/0.7.4)
+[![dependency status](https://deps.rs/crate/asn1_der/0.7.5/status.svg)](https://deps.rs/crate/asn1_der/0.7.5)
 
 # asn1_der
 Welcome to `asn1_der` 🎉
