@@ -10,6 +10,28 @@ use asn1_der::{
 };
 
 
+pub trait OptionExt<T> {
+	/// Returns the `Some` variant or pretty prints the error and panics
+	fn assert(self, name: &str) -> T;
+	/// Returns the `Some` variant or pretty prints the error and panics
+	fn assert_index(self, name: &str, i: usize) -> T;
+}
+impl<T> OptionExt<T> for Option<T> {
+	fn assert(self, name: &str) -> T {
+		self.unwrap_or_else(|| {
+			eprintln!("Unexpectet `None` result @\"{}\"", name);
+			panic!("Panicked due to fatal error");
+		})
+	}
+	fn assert_index(self, name: &str, i: usize) -> T {
+		self.unwrap_or_else(|| {
+			eprintln!("Unexpected `None` result @\"{}\":{}", name, i);
+			panic!("Panicked due to fatal error");
+		})
+	}
+}
+
+
 pub trait ResultExt<T, E> {
 	/// Returns the `Ok` variant or pretty prints the error and panics
 	fn assert(self, name: &str) -> T;
@@ -58,7 +80,7 @@ pub mod test_ok {
 	pub struct Length {
 		pub name: String,
 		pub bytes: Vec<u8>,
-		pub value: u64
+		pub value: Option<u64>
 	}
 	
 	

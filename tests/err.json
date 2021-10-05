@@ -11,16 +11,6 @@
       "err": "InvalidData"
     },
     {
-      "name": "Truncated length (expected 1, got 0)",
-      "bytes": [129],
-      "err": "InOutError"
-    },
-    {
-      "name": "Truncated length (expected 4, got 3)",
-      "bytes": [132,1,0,0],
-      "err": "InOutError"
-    },
-    {
       "name": "Unsupported length > 2^64 - 1",
       "bytes": [137,1,0,0,0,0,0,0,0,0],
       "err": "Unsupported"

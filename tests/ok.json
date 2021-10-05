@@ -87,6 +87,17 @@
       "name": "Complex length (2^64 - 1)",
       "bytes": [136,255,255,255,255,255,255,255,255],
       "value": 18446744073709551615
+    },
+
+    {
+      "name": "Truncated length (expected 1, got 0)",
+      "bytes": [],
+      "value": null
+    },
+    {
+      "name": "Truncated length (expected 4, got 3)",
+      "bytes": [],
+      "value": null
     }
   ],
   "object": [
