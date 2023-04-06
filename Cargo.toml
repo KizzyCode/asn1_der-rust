@@ -1,7 +1,7 @@
 [package]
 name = "asn1_der"
-version = "0.7.5"
-edition = "2018"
+version = "0.7.6"
+edition = "2021"
 authors = ["KizzyCode Software Labs./Keziah Biermann <development@kizzycode.de>"]
 keywords = ["asn1", "asn1-der", "serialize", "deserialize", "no_panic"]
 categories = ["encoding"]
@@ -17,9 +17,9 @@ appveyor = { repository = "KizzyCode/asn1_der-rust" }
 
 
 [features]
-default = ["native_types"]
+default = ["std", "native_types"]
+std = []
 native_types = []
-no_std = []
 no_panic = ["no-panic"]
 
 
@@ -33,7 +33,6 @@ serde_json = "1.0"
 
 
 [profile.release]
-lto = "thin"
 overflow-checks = true
 
 [profile.bench]

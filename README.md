@@ -4,7 +4,7 @@
 [![crates.io](https://img.shields.io/crates/v/asn1_der.svg)](https://crates.io/crates/asn1_der)
 [![Download numbers](https://img.shields.io/crates/d/asn1_der.svg)](https://crates.io/crates/asn1_der)
 [![AppVeyor CI](https://ci.appveyor.com/api/projects/status/github/KizzyCode/asn1_der-rust?svg=true)](https://ci.appveyor.com/project/KizzyCode/asn1-der-rust)
-[![dependency status](https://deps.rs/crate/asn1_der/0.7.5/status.svg)](https://deps.rs/crate/asn1_der/0.7.5)
+[![dependency status](https://deps.rs/crate/asn1_der/latest/status.svg)](https://deps.rs/crate/asn1_der)
 
 # asn1_der
 Welcome to `asn1_der` 🎉
@@ -17,29 +17,31 @@ allocations and unnecessary copies.
 
 
 ## Example
-```rust
+```ignore
 use asn1_der::{
     DerObject,
     typed::{ DerEncodable, DerDecodable }
 };
 
-/// An ASN.1-DER encoded integer `7`
-const INT7: &'static[u8] = b"\x02\x01\x07";
+fn main() {
+    /// An ASN.1-DER encoded integer `7`
+    const INT7: &'static[u8] = b"\x02\x01\x07";
 
-// Decode an arbitrary DER object
-let object = DerObject::decode(INT7).expect("Failed to decode object");
+    // Decode an arbitrary DER object
+    let object = DerObject::decode(INT7).expect("Failed to decode object");
 
-// Encode an arbitrary DER object
-let mut encoded_object = Vec::new();
-object.encode(&mut encoded_object).expect("Failed to encode object");
+    // Encode an arbitrary DER object
+    let mut encoded_object = Vec::new();
+    object.encode(&mut encoded_object).expect("Failed to encode object");
 
-// Decode a `u8`
-let number = u8::decode(INT7).expect("Failed to decode number");
-assert_eq!(number, 7);
+    // Decode a `u8`
+    let number = u8::decode(INT7).expect("Failed to decode number");
+    assert_eq!(number, 7);
 
-// Encode a new `u8`
-let mut encoded_number = Vec::new();
-7u8.encode(&mut encoded_number).expect("Failed to encode number");
+    // Encode a new `u8`
+    let mut encoded_number = Vec::new();
+    7u8.encode(&mut encoded_number).expect("Failed to encode number");
+}
 ```
 
 For the (de-)serialization of structs and similar via `derive`, see 
@@ -77,7 +79,7 @@ of errors that can also happen in this crate. This especially includes:
     - When decoding a native owned type such as `Vec<u8>`, `SequenceVec(Vec<T>)` or `String`
     - During error propagation
    
-   If the crate is compiled with `no_std` enabled, it does performy any dynamic memory allocation 
+   If the crate is compiled without `std` enabled, it does performy any dynamic memory allocation 
    directly by itself – however for foreign implementations passed to this crate may still allocate 
    memory and fail (e.g. a custom `Sink` implementation).
    
