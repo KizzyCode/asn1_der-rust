@@ -17,11 +17,11 @@ configuration:
   - --features=
   - --features=native_types
   - --features=std
-  - --features=no_panic
+  #- --features=no_panic
   - --features=native_types,std
-  - --features=std,no_panic
-  - --features=no_panic,native_types
-  - --features=native_types,std,no_panic
+  #- --features=std,no_panic
+  #- --features=no_panic,native_types
+  #- --features=native_types,std,no_panic
 
 
 # General environment vars
