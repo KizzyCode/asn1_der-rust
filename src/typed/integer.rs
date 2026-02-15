@@ -63,7 +63,11 @@ impl<'a> Integer<'a> {
             len => buf_slice.len() - len,
         };
 
-        // Copy the number and ensure that it can be represented
+        // Zero-fill the leading bytes (sign extension)
+        let fill_byte = if self.is_negative() { 0xFF } else { 0x00 };
+        buf_slice.iter_mut().take(to_skip).for_each(|b| *b = fill_byte);
+
+        // Copy the number bytes
         buf_slice.iter_mut().skip(to_skip).zip(slice.iter()).for_each(|(t, b)| *t = *b);
         Ok(buf)
     }
