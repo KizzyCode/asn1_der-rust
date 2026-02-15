@@ -173,12 +173,16 @@ impl<T> DerefMut for SequenceVec<T> {
 impl<'a, T: DerDecodable<'a>> DerDecodable<'a> for SequenceVec<T> {
     fn load(object: DerObject<'a>) -> Result<Self, Asn1DerError> {
         let sequence = Sequence::load(object).propagate(e!("Failed to load sequence"))?;
-        let objects = (0..sequence.len()).try_fold(Vec::new(), |mut vec, i| {
-            let subobject: T = sequence.get_as(i).propagate(e!("Failed to load subelement"))?;
-            vec.push(subobject);
-            Ok(vec)
-        })?;
-        Ok(Self(objects))
+
+        // Iterate through sub-objects once using sequential position tracking (O(n) instead of O(n²))
+        let mut vec = Vec::new();
+        let (mut pos, total_len) = (0, sequence.object.value().len());
+        while pos < total_len {
+            let subobject = sequence.subobject_at(&mut pos).propagate(e!("Failed to load subelement"))?;
+            let element: T = T::load(subobject).propagate(e!("Failed to load subelement"))?;
+            vec.push(element);
+        }
+        Ok(Self(vec))
     }
 }
 #[cfg(all(feature = "std", not(feature = "no_panic")))]
