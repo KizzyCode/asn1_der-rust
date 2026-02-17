@@ -8,7 +8,7 @@ pub trait Source: Sized {
 
     /// Creates a counting source
     #[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-    fn counting_source(self, ctr: &mut usize) -> CountingSource<Self> {
+    fn counting_source(self, ctr: &mut usize) -> CountingSource<'_, Self> {
         CountingSource { source: self, ctr }
     }
     /// Creates a copying source
@@ -110,7 +110,7 @@ pub trait Sink: Sized {
     fn write(&mut self, e: u8) -> Result<(), Asn1DerError>;
     /// Creates a counting sink
     #[cfg_attr(feature = "no_panic", no_panic::no_panic)]
-    fn counting_sink(self, ctr: &mut usize) -> CountingSink<Self> {
+    fn counting_sink(self, ctr: &mut usize) -> CountingSink<'_, Self> {
         CountingSink { sink: self, ctr }
     }
 }
