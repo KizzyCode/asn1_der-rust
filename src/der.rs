@@ -39,7 +39,11 @@ pub mod length {
 
                 // Validate the length
                 match usize::from_be_bytes(buf) {
+                    // Complex lengths must not be used to represent a single byte length
                     len if len < 0b1000_0000 => Err(einval!("Encountered complex length < 128"))?,
+                    // DER requires minimal encoding: the first byte of the length must be non-zero (otherwise a shorter
+                    //  encoding would have been sufficient)
+                    len if buf[skip] == 0 => Err(einval!("Non-canonical DER: length uses more bytes than necessary"))?,
                     len => Ok(Some(len)),
                 }
             }
