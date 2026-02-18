@@ -17,13 +17,14 @@ allocations and unnecessary copies.
 
 
 ## Example
-```ignore
-use asn1_der::{
-    DerObject,
-    typed::{ DerEncodable, DerDecodable }
-};
+```rust
+#[cfg(all(feature = "std", feature = "native_types"))]
+{
+    use asn1_der::{
+        DerObject,
+        typed::{ DerEncodable, DerDecodable }
+    };
 
-fn main() {
     /// An ASN.1-DER encoded integer `7`
     const INT7: &'static[u8] = b"\x02\x01\x07";
 
