@@ -1,4 +1,5 @@
-use crate::{error::ErrorChain, Asn1DerError};
+use crate::error::ErrorChain;
+use crate::Asn1DerError;
 use core::{iter, slice};
 
 /// A trait defining a byte source

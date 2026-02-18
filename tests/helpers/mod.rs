@@ -1,7 +1,5 @@
-use asn1_der::{
-    Asn1DerError,
-    Asn1DerErrorVariant::{InOutError, InvalidData, Other, Unsupported},
-};
+use asn1_der::Asn1DerError;
+use asn1_der::Asn1DerErrorVariant::{InOutError, InvalidData, Other, Unsupported};
 
 pub trait OptionExt<T> {
     /// Returns the `Some` variant or pretty prints the error and panics

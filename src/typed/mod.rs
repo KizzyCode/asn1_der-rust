@@ -8,11 +8,14 @@ mod octet_string;
 mod sequence;
 mod utf8_string;
 
-pub use crate::typed::{
-    boolean::Boolean, integer::Integer, null::Null, octet_string::OctetString, sequence::Sequence,
-    utf8_string::Utf8String,
-};
-use crate::{error::ErrorChain, Asn1DerError, DerObject, Sink, Source};
+use crate::error::ErrorChain;
+pub use crate::typed::boolean::Boolean;
+pub use crate::typed::integer::Integer;
+pub use crate::typed::null::Null;
+pub use crate::typed::octet_string::OctetString;
+pub use crate::typed::sequence::Sequence;
+pub use crate::typed::utf8_string::Utf8String;
+use crate::{Asn1DerError, DerObject, Sink, Source};
 #[cfg(all(feature = "std", not(feature = "no_panic")))]
 pub use sequence::SequenceVec;
 

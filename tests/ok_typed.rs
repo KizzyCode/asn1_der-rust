@@ -6,10 +6,10 @@ pub mod helpers;
 use crate::helpers::{test_ok, ResultExt};
 #[cfg(all(feature = "std", not(feature = "no_panic")))]
 use asn1_der::typed::SequenceVec;
-use asn1_der::{
-    typed::{Boolean, DerDecodable, DerEncodable, DerTypeView, Integer, Null, OctetString, Sequence, Utf8String},
-    DerObject, SliceSink,
+use asn1_der::typed::{
+    Boolean, DerDecodable, DerEncodable, DerTypeView, Integer, Null, OctetString, Sequence, Utf8String,
 };
+use asn1_der::{DerObject, SliceSink};
 use core::convert::TryFrom;
 
 #[test]

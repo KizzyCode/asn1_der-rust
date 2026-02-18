@@ -1,8 +1,6 @@
-use crate::{
-    error::ErrorChain,
-    typed::{DerDecodable, DerEncodable, DerTypeView},
-    Asn1DerError, DerObject, Sink,
-};
+use crate::error::ErrorChain;
+use crate::typed::{DerDecodable, DerEncodable, DerTypeView};
+use crate::{Asn1DerError, DerObject, Sink};
 
 /// An ASN.1-DER boolean type view
 #[derive(Copy, Clone)]

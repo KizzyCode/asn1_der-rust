@@ -14,8 +14,6 @@ pub mod typed;
 // Reexport common types
 #[cfg(all(feature = "std", not(feature = "no_panic")))]
 pub use crate::data::VecBacking;
-pub use crate::{
-    data::{CopyingSource, CountingSource, Sink, SliceSink, Source},
-    der::DerObject,
-    error::{Asn1DerError, Asn1DerErrorVariant, ErrorChain},
-};
+pub use crate::data::{CopyingSource, CountingSource, Sink, SliceSink, Source};
+pub use crate::der::DerObject;
+pub use crate::error::{Asn1DerError, Asn1DerErrorVariant, ErrorChain};

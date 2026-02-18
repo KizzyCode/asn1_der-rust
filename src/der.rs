@@ -1,8 +1,10 @@
-use crate::{error::ErrorChain, Asn1DerError, Sink, Source};
+use crate::error::ErrorChain;
+use crate::{Asn1DerError, Sink, Source};
 
 /// A mod for ASN.1-length-coding
 pub mod length {
-    use crate::{error::ErrorChain, Asn1DerError, Sink, Source};
+    use crate::error::ErrorChain;
+    use crate::{Asn1DerError, Sink, Source};
     use core::mem;
 
     /// The byte length of an `usize`

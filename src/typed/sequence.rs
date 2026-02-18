@@ -1,9 +1,6 @@
-use crate::{
-    der,
-    error::ErrorChain,
-    typed::{DerDecodable, DerEncodable, DerTypeView},
-    Asn1DerError, DerObject, Sink,
-};
+use crate::error::ErrorChain;
+use crate::typed::{DerDecodable, DerEncodable, DerTypeView};
+use crate::{der, Asn1DerError, DerObject, Sink};
 #[cfg(all(feature = "std", not(feature = "no_panic")))]
 use core::ops::{Deref, DerefMut};
 

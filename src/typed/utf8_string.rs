@@ -1,8 +1,6 @@
-use crate::{
-    error::ErrorChain,
-    typed::{DerDecodable, DerEncodable, DerTypeView},
-    Asn1DerError, DerObject, Sink,
-};
+use crate::error::ErrorChain;
+use crate::typed::{DerDecodable, DerEncodable, DerTypeView};
+use crate::{Asn1DerError, DerObject, Sink};
 use core::str;
 
 /// An ASN.1-DER UTF-8 string view
