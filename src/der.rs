@@ -145,6 +145,12 @@ impl<'a> DerObject<'a> {
             _ => Err(eio!("The object is truncated"))?,
         };
 
+        // Get the raw slice scoped to just this object (from header_start to value_end)
+        let raw = match raw.len() {
+            len if len >= value_end => &raw[header_start..value_end],
+            _ => Err(eio!("The object is truncated"))?,
+        };
+
         Ok(Self { raw, header, tag, value })
     }
     /// Reads a DER-TLV structure from `source` by parsing the length field and copying the
