@@ -11,6 +11,16 @@
       "err": "InvalidData"
     },
     {
+      "name": "Complex length (2^7) with a leading zero byte",
+      "bytes": [130,0,128],
+      "err": "InvalidData"
+    },
+    {
+      "name": "Complex length (247) with a leading zero byte",
+      "bytes": [130,0,247],
+      "err": "InvalidData"
+    },
+    {
       "name": "Unsupported length > 2^64 - 1",
       "bytes": [137,1,0,0,0,0,0,0,0,0],
       "err": "Unsupported"
